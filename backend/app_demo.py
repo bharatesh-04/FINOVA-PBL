@@ -95,7 +95,7 @@ class TransactionCreate(BaseModel):
     description: str
     transaction_type: str = "expense"
     merchant: Optional[str] = None
-    date: Optional[datetime] = None
+    date: Optional[str] = None
 
 class AccountCreate(BaseModel):
     name: str
