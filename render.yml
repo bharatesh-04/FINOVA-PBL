@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: finance-tracker-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements-core.txt
+    startCommand: uvicorn app_demo:app --host 0.0.0.0 --port $PORT
+    rootDir: backend
+    envVars:
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: CORS_ORIGINS
+        value: https://finance-tracker-frontend.onrender.com,http://localhost:3000
+      - key: UPLOAD_DIR
+        value: /tmp/uploads
+
+  - type: static
+    name: finance-tracker-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          name: finance-tracker-api
+          property: url
+          path: /api
