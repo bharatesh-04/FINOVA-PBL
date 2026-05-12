@@ -154,11 +154,11 @@ async def signup(user: UserSignup):
 @app.post("/api/auth/login")
 async def login(credentials: UserLogin):
     if credentials.email not in users_db:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=404, detail="User not found. Please sign up first.")
     
     user = users_db[credentials.email]
     if user["password"] != credentials.password:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Incorrect password")
     
     return {
         "user": {
