@@ -3,7 +3,7 @@ import axios from 'axios';
 const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const DEFAULT_API_URL = isLocalhost
   ? 'http://localhost:8000/api'
-  : 'https://finance-tracker-api.onrender.com/api';
+  : 'https://finova-qvey.onrender.com/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_URL;
 
