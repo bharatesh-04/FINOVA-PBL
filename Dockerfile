@@ -9,27 +9,18 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements
-COPY backend/requirements.txt .
+COPY backend/requirements-core.txt .
 RUN python -m pip install --upgrade pip \
-    && python -m pip install --no-cache-dir -r requirements.txt
+    && python -m pip install --no-cache-dir -r requirements-core.txt
 
 # Copy backend code
 COPY backend/ ./backend/
 
-# Install Node.js for frontend
-RUN apt-get update && apt-get install -y nodejs npm \
-    && rm -rf /var/lib/apt/lists/*
+# Run from backend so app_demo:app resolves correctly
+WORKDIR /app/backend
 
-# Copy frontend
-COPY frontend/ ./frontend/
-WORKDIR /app/frontend
-RUN npm install && npm run build
+# Expose backend port
+EXPOSE 8000
 
-# Back to app directory
-WORKDIR /app
-
-# Expose ports
-EXPOSE 8000 3000
-
-# Run both backend and frontend
-CMD ["sh", "-c", "python backend/main.py & serve -s frontend/build -l 3000"]
+# Run backend with Render's assigned port
+CMD ["sh", "-c", "python -m gunicorn.app.wsgiapp app_demo:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000}"]
