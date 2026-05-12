@@ -41,10 +41,11 @@ export default function SignupPage() {
         currency: 'USD',
       });
 
-      const { access_token, user } = response.data;
-      localStorage.setItem('token', access_token);
+      const { access_token, token, user } = response.data;
+      const authToken = access_token || token;
+      localStorage.setItem('token', authToken);
       localStorage.setItem('user', JSON.stringify(user));
-      setUser(user, access_token);
+      setUser(user, authToken);
 
       showToast.success('Account created successfully!');
       navigate('/dashboard');

@@ -25,11 +25,12 @@ export default function LoginPage() {
 
     try {
       const response = await authAPI.login(formData);
-      const { access_token, user } = response.data;
+      const { access_token, token, user } = response.data;
+      const authToken = access_token || token;
 
-      localStorage.setItem('token', access_token);
+      localStorage.setItem('token', authToken);
       localStorage.setItem('user', JSON.stringify(user));
-      setUser(user, access_token);
+      setUser(user, authToken);
 
       showToast.success('Login successful!');
       navigate('/dashboard');
