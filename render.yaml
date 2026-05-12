@@ -3,8 +3,8 @@ services:
     name: finance-tracker-api
     env: python
     plan: free
-    buildCommand: pip install -r requirements-core.txt
-    startCommand: uvicorn app_demo:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install --upgrade pip && pip install -r requirements-core.txt
+    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT app_demo:app
     rootDir: backend
     envVars:
       - key: DEBUG
@@ -17,3 +17,5 @@ services:
         value: "*"
       - key: UPLOAD_DIR
         value: /tmp/uploads
+      - key: PYTHONUNBUFFERED
+        value: "1"
