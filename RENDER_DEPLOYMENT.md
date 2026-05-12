@@ -56,7 +56,7 @@ Counting objects: 100%, done.
 
 ---
 
-## 🎯 Step 2: Deploy on Render.com
+## 🎯 Step 2: Deploy Backend on Render.com
 
 ### 2.1 Create Render Account
 1. Go to **https://render.com**
@@ -64,52 +64,45 @@ Counting objects: 100%, done.
 3. Select **"Sign up with GitHub"**
 4. Authorize Render to access your GitHub
 
-### 2.2 Create New Project from Blueprint
+### 2.2 Deploy Backend Using Blueprint
 1. Go to **https://dashboard.render.com**
 2. Click **"New +"** → **"Blueprint"**
 3. Select your `finance-tracker` repository
+4. Render will auto-detect `render.yaml` or `render.yml`
+5. Review the backend configuration
+6. Click **"Create from Blueprint"**
+7. Wait 2-3 minutes for deployment
 
-### 2.3 Upload Configuration
-1. Click **"Connect Repository"**
-2. The system will look for `render.yaml`
-3. Since we created `render.yaml`, it will auto-detect it
-4. Click **"Create from Blueprint"**
+**You'll get backend URL:** `https://finance-tracker-api.onrender.com`
 
-### 2.4 Set Environment Variables
+---
 
-**For Backend Service:**
+## 🎯 Step 3: Deploy Frontend as Static Site
 
-The Render Blueprint will show a form. Fill in:
+After the backend is deployed, deploy the frontend separately:
 
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `DEBUG` | `false` | Production mode |
-| `SECRET_KEY` | *(leave blank)* | Render will auto-generate |
-| `ALGORITHM` | `HS256` | Keep as-is |
-| `CORS_ORIGINS` | *(see note below)* | Update after deployment |
-| `UPLOAD_DIR` | `/tmp/uploads` | Temporary storage |
+### 3.1 Create Static Site Service
+1. Go to **Dashboard** → Click **"New +"** → **"Static Site"**
+2. Select your `finance-tracker` repository
+3. Fill in details:
+   - **Name**: `finance-tracker-frontend`
+   - **Build Command**: `cd frontend && npm install && npm run build`
+   - **Publish Directory**: `frontend/build`
 
-**Note about CORS_ORIGINS:**
-- Initially set to: `https://finance-tracker-frontend.onrender.com,http://localhost:3000`
-- After both services deploy, update with actual Render URLs
-
-### 2.5 Review and Deploy
-1. Click **"Deploy"**
-2. Wait for deployment (3-5 minutes)
-3. You'll see:
-   - Backend: `https://finance-tracker-api.onrender.com`
-   - Frontend: `https://finance-tracker-frontend.onrender.com`
-
-### 2.6 Update CORS After Deployment
-
-Once both services are deployed:
-
-1. Go to **Backend Service** → **Environment**
-2. Update `CORS_ORIGINS` with actual URLs:
+### 3.2 Add Environment Variable
+1. Click **"Environment"**
+2. Add variable:
    ```
-   https://finance-tracker-frontend.onrender.com
+   REACT_APP_API_URL=https://finance-tracker-api.onrender.com/api
    ```
-3. Save and redeploy
+   (Use the actual backend URL from step 2)
+3. Save
+
+### 3.3 Deploy Frontend
+1. Click **"Create Static Site"**
+2. Wait 2-3 minutes for deployment
+
+**You'll get frontend URL:** `https://finance-tracker-frontend.onrender.com`
 
 ---
 
