@@ -14,6 +14,10 @@ const api = axios.create({
   },
 });
 
+const normalizeParams = (params, key) => (
+  params && typeof params === 'object' ? params : { [key]: params }
+);
+
 // Add token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -65,7 +69,7 @@ export const categoryAPI = {
 
 export const budgetAPI = {
   createBudget: (data) => api.post('/budgets', data),
-  getBudgets: (month) => api.get('/budgets', { params: { month } }),
+  getBudgets: (params) => api.get('/budgets', { params: normalizeParams(params, 'month') }),
   updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
   deleteBudget: (id) => api.delete(`/budgets/${id}`),
 };
@@ -79,26 +83,32 @@ export const goalAPI = {
 };
 
 export const analyticsAPI = {
-  getDashboardSummary: (month) => api.get('/analytics/dashboard/summary', { params: { month } }),
-  getCategoryTrends: (categoryId, months) => api.get(`/analytics/category/${categoryId}/trends`, { params: { months } }),
+  getDashboardSummary: (params) => api.get('/analytics/dashboard/summary', { params: normalizeParams(params, 'month') }),
+  getCategoryTrends: (categoryId, params) => api.get(`/analytics/category/${categoryId}/trends`, { params: normalizeParams(params, 'months') }),
   getAnomalies: () => api.get('/analytics/anomalies'),
-  getInsights: (month) => api.get('/analytics/insights', { params: { month } }),
-  getBudgetStatus: (month) => api.get('/analytics/budget/status', { params: { month } }),
-  forecastExpenses: (daysAhead) => api.get('/analytics/forecast', { params: { days_ahead: daysAhead } }),
+  getInsights: (params) => api.get('/analytics/insights', { params: normalizeParams(params, 'month') }),
+  getBudgetStatus: (params) => api.get('/analytics/budget/status', { params: normalizeParams(params, 'month') }),
+  forecastExpenses: (params) => api.get('/analytics/forecast', { params: normalizeParams(params, 'days_ahead') }),
+  getExpenseForecast: (params) => api.get('/analytics/forecast', { params: normalizeParams(params, 'days_ahead') }),
   getNetWorth: () => api.get('/analytics/net-worth'),
 };
 
 export const billAPI = {
-  uploadReceipt: (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
+  uploadReceipt: (fileOrFormData) => {
+    const formData = fileOrFormData instanceof FormData ? fileOrFormData : new FormData();
+    if (!(fileOrFormData instanceof FormData)) {
+      formData.append('file', fileOrFormData);
+    }
     return api.post('/bills/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
   getReceipts: (status) => api.get('/bills', { params: { status } }),
+  getBills: (status) => api.get('/bills', { params: { status } }),
   updateReceipt: (id, data) => api.put(`/bills/${id}`, data),
+  updateBill: (id, data) => api.put(`/bills/${id}`, data),
   deleteReceipt: (id) => api.delete(`/bills/${id}`),
+  deleteBill: (id) => api.delete(`/bills/${id}`),
 };
 
 export default api;
