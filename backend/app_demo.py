@@ -14,7 +14,16 @@ load_dotenv()
 
 # Production settings
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
-ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+DEFAULT_CORS_ORIGINS = ",".join([
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://finova-qvey.onrender.com",
+])
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+    if origin.strip()
+]
 
 app = FastAPI(
     title="AI Finance Tracker",

@@ -14,7 +14,7 @@ services:
       - key: ALGORITHM
         value: HS256
       - key: CORS_ORIGINS
-        value: "*"
+        value: https://finova-qvey.onrender.com
       - key: UPLOAD_DIR
         value: /tmp/uploads
       - key: PYTHONUNBUFFERED
