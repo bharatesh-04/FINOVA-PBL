@@ -27,8 +27,8 @@ export default function BudgetsPage() {
         budgetAPI.getBudgets({ month: currentMonth }),
         categoryAPI.getCategories(),
       ]);
-      setBudgets(budRes.data);
-      setCategories(catRes.data);
+      setBudgets(Array.isArray(budRes.data) ? budRes.data : budRes.data?.budgets || []);
+      setCategories(Array.isArray(catRes.data) ? catRes.data : catRes.data?.categories || []);
     } catch (error) {
       showToast.error('Failed to load data');
     } finally {
@@ -62,7 +62,7 @@ export default function BudgetsPage() {
       });
       loadData();
     } catch (error) {
-      showToast.error(error.response?.data?.detail || 'Operation failed');
+      showToast.error(error);
     }
   };
 

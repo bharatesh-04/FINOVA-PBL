@@ -1,5 +1,5 @@
 """User model"""
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Index
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -27,7 +27,3 @@ class User(Base):
     recurring_transactions = relationship("RecurringTransaction", back_populates="user", cascade="all, delete-orphan")
     bill_receipts = relationship("BillReceipt", back_populates="user", cascade="all, delete-orphan")
     
-    __table_args__ = (
-        Index('ix_users_email', 'email'),
-        Index('ix_users_username', 'username'),
-    )

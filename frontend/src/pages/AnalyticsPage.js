@@ -28,12 +28,12 @@ export default function AnalyticsPage() {
         analyticsAPI.getNetWorth(),
       ]);
 
-      setSummary(summaryRes.data);
-      setAnomalies(anomaliesRes.data);
-      setInsights(insightsRes.data);
-      setBudgetStatus(budgetRes.data);
-      setForecast(forecastRes.data);
-      setNetWorth(netWorthRes.data);
+      setSummary(summaryRes.data || {});
+      setAnomalies(Array.isArray(anomaliesRes.data) ? anomaliesRes.data : anomaliesRes.data?.anomalies || []);
+      setInsights(Array.isArray(insightsRes.data) ? insightsRes.data : insightsRes.data?.insights || []);
+      setBudgetStatus(Array.isArray(budgetRes.data) ? budgetRes.data : budgetRes.data?.budget_status || []);
+      setForecast(forecastRes.data || {});
+      setNetWorth(netWorthRes.data || {});
     } catch (error) {
       showToast.error('Failed to load analytics');
     } finally {

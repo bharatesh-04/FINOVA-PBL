@@ -49,7 +49,7 @@ export default function SignupPage() {
       showToast.success('Account created successfully!');
       navigate('/dashboard');
     } catch (error) {
-      showToast.error(error.response?.data?.detail || 'Signup failed');
+      showToast.error(error);
     } finally {
       setIsLoading(false);
     }

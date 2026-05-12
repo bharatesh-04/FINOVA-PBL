@@ -23,9 +23,9 @@ export default function DashboardPage() {
         analyticsAPI.getInsights(),
       ]);
 
-      setSummary(summaryRes.data);
-      setAnomalies(anomaliesRes.data || []);
-      setInsights(insightsRes.data || []);
+      setSummary(summaryRes.data || {});
+      setAnomalies(Array.isArray(anomaliesRes.data) ? anomaliesRes.data : anomaliesRes.data?.anomalies || []);
+      setInsights(Array.isArray(insightsRes.data) ? insightsRes.data : insightsRes.data?.insights || []);
     } catch (error) {
       showToast.error('Failed to load dashboard data');
     } finally {

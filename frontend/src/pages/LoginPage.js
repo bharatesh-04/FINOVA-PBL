@@ -34,7 +34,7 @@ export default function LoginPage() {
       showToast.success('Login successful!');
       navigate('/dashboard');
     } catch (error) {
-      showToast.error(error.response?.data?.detail || 'Login failed');
+      showToast.error(error);
     } finally {
       setIsLoading(false);
     }

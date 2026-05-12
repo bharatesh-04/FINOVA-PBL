@@ -20,9 +20,52 @@ export const formatDateTime = (date) => {
   return new Date(date).toLocaleString('en-US');
 };
 
+// Extract error message from various error formats
+export const extractErrorMessage = (error) => {
+  // If it's a string, return as is
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  // Check if it's an axios error
+  if (error?.response?.data) {
+    const data = error.response.data;
+    
+    // If it has a detail field (FastAPI standard error)
+    if (typeof data?.detail === 'string') {
+      return data.detail;
+    }
+
+    // If detail is an array (validation errors)
+    if (Array.isArray(data?.detail)) {
+      return data.detail.map(err => {
+        if (typeof err === 'string') return err;
+        if (err?.msg) return `${err.loc?.[1] || err.loc?.[0]}: ${err.msg}`;
+        return 'Validation error';
+      }).join(', ');
+    }
+
+    // If there's a message field
+    if (typeof data?.message === 'string') {
+      return data.message;
+    }
+
+    // If it's directly an error object with msg field
+    if (typeof data?.msg === 'string') {
+      return data.msg;
+    }
+  }
+
+  // Fallback
+  return error?.message || 'An error occurred';
+};
+
 export const showToast = {
   success: (message) => toast.success(message),
-  error: (message) => toast.error(message),
+  error: (error) => {
+    const message = extractErrorMessage(error);
+    toast.error(message);
+  },
   loading: (message) => toast.loading(message),
 };
 

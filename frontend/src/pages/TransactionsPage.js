@@ -32,9 +32,10 @@ export default function TransactionsPage() {
         accountAPI.getAccounts(),
       ]);
 
-      setTransactions(transRes.data);
-      setCategories(catRes.data);
-      setAccounts(accRes.data);
+      // Handle both array and object responses
+      setTransactions(Array.isArray(transRes.data) ? transRes.data : transRes.data?.transactions || []);
+      setCategories(Array.isArray(catRes.data) ? catRes.data : catRes.data?.categories || []);
+      setAccounts(Array.isArray(accRes.data) ? accRes.data : accRes.data?.accounts || []);
     } catch (error) {
       showToast.error('Failed to load data');
     } finally {
@@ -65,7 +66,7 @@ export default function TransactionsPage() {
       });
       loadData();
     } catch (error) {
-      showToast.error(error.response?.data?.detail || 'Operation failed');
+      showToast.error(error);
     }
   };
 

@@ -22,7 +22,8 @@ export default function AccountsPage() {
   const loadAccounts = async () => {
     try {
       const res = await accountAPI.getAccounts();
-      setAccounts(res.data);
+      // Handle both array and object responses
+      setAccounts(Array.isArray(res.data) ? res.data : res.data?.accounts || []);
     } catch (error) {
       showToast.error('Failed to load accounts');
     } finally {
@@ -45,7 +46,7 @@ export default function AccountsPage() {
       setFormData({ name: '', account_type: 'bank', balance: '', currency: 'USD' });
       loadAccounts();
     } catch (error) {
-      showToast.error(error.response?.data?.detail || 'Operation failed');
+      showToast.error(error);
     }
   };
 

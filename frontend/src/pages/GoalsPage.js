@@ -26,7 +26,7 @@ export default function GoalsPage() {
   const loadGoals = async () => {
     try {
       const res = await goalAPI.getGoals();
-      setGoals(res.data);
+      setGoals(Array.isArray(res.data) ? res.data : res.data?.goals || []);
     } catch (error) {
       showToast.error('Failed to load goals');
     } finally {
@@ -49,7 +49,7 @@ export default function GoalsPage() {
       setFormData({ name: '', description: '', target_amount: '', category: '', priority: 'medium', deadline: '' });
       loadGoals();
     } catch (error) {
-      showToast.error(error.response?.data?.detail || 'Operation failed');
+      showToast.error(error);
     }
   };
 

@@ -16,7 +16,7 @@ export default function BillsPage() {
   const loadBills = async () => {
     try {
       const res = await billAPI.getBills();
-      setBills(res.data);
+      setBills(Array.isArray(res.data) ? res.data : res.data?.bills || []);
     } catch (error) {
       showToast.error('Failed to load bills');
     } finally {
