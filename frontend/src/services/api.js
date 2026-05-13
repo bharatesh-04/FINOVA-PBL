@@ -5,7 +5,10 @@ const DEFAULT_API_URL = isLocalhost
   ? 'http://localhost:8000/api'
   : 'https://finova-fpr3.onrender.com/api';
 
+// Use environment variable if set, otherwise use default
 const API_BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_URL;
+
+console.log('API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,

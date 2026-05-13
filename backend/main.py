@@ -75,10 +75,14 @@ def health_check():
 if os.path.exists(settings.UPLOAD_DIR):
     app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
-# Serve static files from React build - must be before catch-all
+# Get frontend build path - handle both development and production
 frontend_build_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
-frontend_static_path = os.path.join(frontend_build_path, "static")
+if not os.path.exists(frontend_build_path):
+    # Try alternative path for production
+    frontend_build_path = os.path.join(os.path.dirname(__file__), "frontend", "build")
 
+# Serve static files from React build
+frontend_static_path = os.path.join(frontend_build_path, "static")
 if os.path.exists(frontend_static_path):
     app.mount("/static", StaticFiles(directory=frontend_static_path), name="static")
 
@@ -86,16 +90,25 @@ if os.path.exists(frontend_static_path):
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve React SPA for all non-API routes"""
-    # If it's an API route or file request, let it fail naturally
-    if full_path.startswith("api/") or full_path.startswith("uploads/") or "." in full_path:
-        return {"error": "Not Found"}
+    # Skip if it's an API route, file with extension, or uploads
+    if full_path.startswith("api/"):
+        return {"error": "Not Found"}, 404
+    
+    if "." in full_path or full_path.startswith("uploads/"):
+        return {"error": "Not Found"}, 404
     
     # Serve index.html for client-side routing
     index_file = os.path.join(frontend_build_path, "index.html")
+    
     if os.path.exists(index_file):
         return FileResponse(index_file, media_type="text/html")
     
-    return {"error": "Frontend not built. Run: npm run build in frontend directory"}
+    # Fallback if frontend not built
+    return {
+        "error": "Frontend not built",
+        "message": "Run: cd frontend && npm run build",
+        "frontend_path": frontend_build_path
+    }
 
 # Error handlers
 @app.exception_handler(ValueError)
