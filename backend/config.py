@@ -38,7 +38,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list = [
         "http://localhost:3000", 
         "http://localhost:8000",
-        "https://YOUR_RENDER_DOMAIN.onrender.com"
+        "https://finova-qvey.onrender.com",
+        "https://finova-fpr3.onrender.com"
     ]
     
     class Config:
