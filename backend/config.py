@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # Database settings
-    DATABASE_URL: str = "sqlite:///./finance_tracker.db"
-    # For PostgreSQL: postgresql://user:password@localhost/dbname
+    DATABASE_URL: str = "sqlite:///./finance_tracker.db"  # SQLite for local dev
+    # For PostgreSQL: postgresql://user:password@hostname:5432/dbname
     
     # JWT settings
     SECRET_KEY: str = "your-secret-key-change-this-in-production-min-32-chars"
@@ -35,10 +35,20 @@ class Settings(BaseSettings):
     MODEL_PATH: str = "ml_models"
     
     # CORS settings
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:8000"]
+    CORS_ORIGINS: list = [
+        "http://localhost:3000", 
+        "http://localhost:8000",
+        "https://YOUR_RENDER_DOMAIN.onrender.com"
+    ]
     
     class Config:
         env_file = ".env"
         case_sensitive = True
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        # Parse CORS_ORIGINS from environment if it's a string
+        if isinstance(self.CORS_ORIGINS, str):
+            self.CORS_ORIGINS = [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
 
 settings = Settings()
