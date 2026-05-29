@@ -21,17 +21,17 @@ init_db()
 async def lifespan(app: FastAPI):
     """Application lifespan context manager"""
     # Startup
-    print("Starting Finance Tracker API...")
+    print("Starting FINNOVA API...")
     init_db()
     yield
     # Shutdown
-    print("Shutting down Finance Tracker API...")
+    print("Shutting down FINNOVA API...")
 
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="AI-Powered Personal Finance Tracker & Analyzer",
+    description="FINNOVA - AI-powered personal finance tracker and analyzer",
     lifespan=lifespan
 )
 
@@ -60,7 +60,7 @@ app.include_router(bill_router)
 def root():
     """Root endpoint"""
     return {
-        "message": "Welcome to Finance Tracker API",
+        "message": "Welcome to FINNOVA API",
         "version": settings.APP_VERSION,
         "docs": "/docs"
     }

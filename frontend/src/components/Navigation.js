@@ -32,7 +32,7 @@ export default function Navigation({ theme, themeOptions, onThemeChange }) {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center min-h-16 py-3 gap-3">
           <Link to="/dashboard" className="font-bold text-xl whitespace-nowrap">
-            💰 Finance Tracker
+            FINNOVA
           </Link>
 
           {/* Desktop Menu */}

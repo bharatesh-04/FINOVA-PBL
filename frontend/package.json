@@ -1,7 +1,7 @@
 {
   "name": "finance-tracker-frontend",
   "version": "1.0.0",
-  "description": "AI-Powered Personal Finance Tracker Frontend",
+  "description": "FINNOVA frontend",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",

@@ -26,9 +26,9 @@ ALLOWED_ORIGINS = [
 ]
 
 app = FastAPI(
-    title="AI Finance Tracker",
+    title="FINNOVA",
     version="1.0.0",
-    description="Personal Finance Tracker & Analyzer",
+    description="AI-powered personal finance tracker and analyzer",
     docs_url="/docs" if DEBUG else None,
     redoc_url="/redoc" if DEBUG else None,
 )
@@ -527,7 +527,7 @@ async def get_category_trends(category_id: int, credentials: HTTPBearer = Depend
 # Health check
 @app.get("/")
 async def root():
-    return {"message": "Finance Tracker API", "status": "running"}
+    return {"message": "FINNOVA API", "status": "running"}
 
 @app.get("/health")
 async def health():

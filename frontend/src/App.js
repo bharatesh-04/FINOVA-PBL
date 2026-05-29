@@ -60,7 +60,7 @@ function App() {
           <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mb-4">
             <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full"></div>
           </div>
-          <p className="text-xl font-semibold">Finance Tracker</p>
+          <p className="text-xl font-semibold">FINNOVA</p>
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 """
-Configuration settings for the Finance Tracker application
+Configuration settings for the FINNOVA application
 """
 import os
 from pydantic_settings import BaseSettings
@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # App settings
-    APP_NAME: str = "AI Personal Finance Tracker"
+    APP_NAME: str = "FINNOVA"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     
