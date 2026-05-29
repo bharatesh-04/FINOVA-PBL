@@ -23,4 +23,4 @@ WORKDIR /app/backend
 EXPOSE 8000
 
 # Run backend with Render's assigned port
-CMD ["sh", "-c", "python -m gunicorn.app.wsgiapp app_demo:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000}"]
+CMD ["sh", "-c", "python -m gunicorn.app.wsgiapp app_demo:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000}"]

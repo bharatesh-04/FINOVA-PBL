@@ -8,6 +8,8 @@ import os
 from datetime import datetime, timedelta
 from typing import Optional, List
 import json
+import sqlite3
+from contextlib import closing
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -44,16 +46,84 @@ app.add_middleware(
 
 security = HTTPBearer()
 
-# In-memory storage for demo
-users_db = {
+DEMO_DATABASE_PATH = os.getenv("DEMO_DATABASE_PATH", "finova_demo.db")
+
+DEFAULT_USERS = {
     "demo@example.com": {
         "id": 1,
         "email": "demo@example.com",
         "username": "demo",
         "password": "demo123456",  # Demo only!
-        "created_at": datetime.now()
+        "created_at": datetime.now().isoformat()
     }
 }
+
+def get_auth_db():
+    """Return a SQLite connection for demo auth persistence."""
+    db_dir = os.path.dirname(DEMO_DATABASE_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
+    conn = sqlite3.connect(DEMO_DATABASE_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_auth_db():
+    """Create demo auth storage and seed the demo account."""
+    with closing(get_auth_db()) as conn:
+        with conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    username TEXT NOT NULL,
+                    password TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            for user in DEFAULT_USERS.values():
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO users (id, email, username, password, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        user["id"],
+                        user["email"],
+                        user["username"],
+                        user["password"],
+                        user["created_at"],
+                    ),
+                )
+
+def get_user_by_email(email: str):
+    with closing(get_auth_db()) as conn:
+        row = conn.execute(
+            "SELECT id, email, username, password, created_at FROM users WHERE email = ?",
+            (email,),
+        ).fetchone()
+        return dict(row) if row else None
+
+def create_demo_user(user: "UserSignup"):
+    with closing(get_auth_db()) as conn:
+        with conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO users (email, username, password, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user.email, user.username, user.password, datetime.now().isoformat()),
+            )
+            user_id = cursor.lastrowid
+        return {
+            "id": user_id,
+            "email": user.email,
+            "username": user.username,
+            "password": user.password,
+        }
+
+init_auth_db()
 
 transactions_db = []
 budgets_db = []
@@ -130,20 +200,14 @@ class ContributionCreate(BaseModel):
 # Auth endpoints
 @app.post("/api/auth/signup")
 async def signup(user: UserSignup):
-    if user.email in users_db:
+    if get_user_by_email(user.email):
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    users_db[user.email] = {
-        "id": len(users_db) + 1,
-        "email": user.email,
-        "username": user.username,
-        "password": user.password,  # Demo - never do this in production!
-        "created_at": datetime.now()
-    }
+    new_user = create_demo_user(user)
     
     return {
         "user": {
-            "id": users_db[user.email]["id"],
+            "id": new_user["id"],
             "email": user.email,
             "username": user.username
         },
@@ -153,10 +217,10 @@ async def signup(user: UserSignup):
 
 @app.post("/api/auth/login")
 async def login(credentials: UserLogin):
-    if credentials.email not in users_db:
+    user = get_user_by_email(credentials.email)
+    if not user:
         raise HTTPException(status_code=404, detail="User not found. Please sign up first.")
     
-    user = users_db[credentials.email]
     if user["password"] != credentials.password:
         raise HTTPException(status_code=401, detail="Incorrect password")
     
@@ -174,10 +238,10 @@ async def get_me(credentials: HTTPBearer = Depends(HTTPBearer())):
     token = credentials.credentials if hasattr(credentials, 'credentials') else str(credentials)
     email = token.replace("demo-token-", "")
     
-    if email not in users_db:
+    user = get_user_by_email(email)
+    if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
     
-    user = users_db[email]
     return {
         "id": user["id"],
         "email": user["email"],
