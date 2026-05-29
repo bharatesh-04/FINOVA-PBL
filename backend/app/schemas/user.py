@@ -7,7 +7,7 @@ class UserBase(BaseModel):
     email: EmailStr
     username: str = Field(..., min_length=3, max_length=50)
     full_name: Optional[str] = None
-    currency: str = "USD"
+    currency: str = "INR"
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)

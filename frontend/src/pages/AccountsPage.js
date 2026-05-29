@@ -12,7 +12,7 @@ export default function AccountsPage() {
     name: '',
     account_type: 'bank',
     balance: '',
-    currency: 'USD',
+    currency: 'INR',
   });
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function AccountsPage() {
         showToast.success('Account created');
       }
       setShowForm(false);
-      setFormData({ name: '', account_type: 'bank', balance: '', currency: 'USD' });
+      setFormData({ name: '', account_type: 'bank', balance: '', currency: 'INR' });
       loadAccounts();
     } catch (error) {
       showToast.error(error);
@@ -126,7 +126,6 @@ export default function AccountsPage() {
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="input-field"
               >
-                <option value="USD">USD</option>
                 <option value="INR">INR</option>
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>

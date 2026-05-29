@@ -23,7 +23,7 @@ Content-Type: application/json
   "username": "johndoe",
   "full_name": "John Doe",
   "password": "securepassword",
-  "currency": "USD"
+  "currency": "INR"
 }
 
 Response (200):
@@ -36,7 +36,7 @@ Response (200):
     "username": "johndoe",
     "full_name": "John Doe",
     "is_active": true,
-    "currency": "USD",
+    "currency": "INR",
     "created_at": "2024-01-01T12:00:00",
     "updated_at": "2024-01-01T12:00:00"
   }
@@ -122,7 +122,7 @@ POST /accounts
   "name": "My Savings",
   "account_type": "bank",
   "balance": 1000.00,
-  "currency": "USD"
+  "currency": "INR"
 }
 
 Response (200): [Account object]

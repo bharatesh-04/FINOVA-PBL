@@ -66,7 +66,7 @@ accounts_db = {
         "name": "Savings Account",
         "account_type": "bank",
         "balance": 5000.00,
-        "currency": "USD",
+        "currency": "INR",
         "created_at": datetime.now()
     }
 }
@@ -101,7 +101,7 @@ class AccountCreate(BaseModel):
     name: str
     account_type: str
     balance: float = 0.0
-    currency: str = "USD"
+    currency: str = "INR"
 
 class CategoryCreate(BaseModel):
     name: str

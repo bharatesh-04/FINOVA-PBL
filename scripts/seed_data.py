@@ -28,7 +28,7 @@ def seed_database():
             username="demo",
             full_name="Demo User",
             hashed_password=hash_password("demo123456"),
-            currency="USD"
+            currency="INR"
         )
         db.add(user)
         db.commit()

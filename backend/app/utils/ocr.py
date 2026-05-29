@@ -61,8 +61,8 @@ class OCRProcessor:
         """Extract amount/price from OCR text"""
         # Common patterns for amounts
         patterns = [
-            r'(?:Total|Amount|Price|Cost|Rs|₹|\$|€)\s*[:=]?\s*([\d,]+\.?\d*)',
-            r'([\d,]+\.\d{2})\s*(?:Rs|₹|\$|€)',
+            r'(?:Total|Amount|Price|Cost|Rs|₹|€)\s*[:=]?\s*([\d,]+\.?\d*)',
+            r'([\d,]+\.\d{2})\s*(?:Rs|₹|€)',
             r'(?:Total Due|Grand Total)\s*[:=]?\s*([\d,]+\.?\d*)',
         ]
         

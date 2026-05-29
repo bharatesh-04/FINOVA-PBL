@@ -48,7 +48,7 @@ Password: demo123456
 - ✅ View total balance across all accounts
 - ✅ Individual account balance display
 - ✅ Edit/delete accounts
-- ✅ Demo account with $5,000 balance
+- ✅ Demo account with INR 5,000 balance
 
 ### ✅ Budgets Page
 - ✅ Create monthly budgets by category
@@ -261,7 +261,7 @@ docker-compose up
 ### Demo Assets
 - ✅ Demo account with data
 - ✅ Default categories (Food, Transport, Entertainment, Salary)
-- ✅ Sample account with $5,000 balance
+- ✅ Sample account with INR 5,000 balance
 - ✅ Seed data script for populating test data
 
 ---

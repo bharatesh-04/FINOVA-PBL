@@ -13,7 +13,7 @@ class Account(Base):
     name = Column(String(255), nullable=False)  # e.g., "SBI Bank", "My Wallet"
     account_type = Column(String(50), nullable=False)  # bank, cash, credit_card, upi, etc.
     balance = Column(Float, default=0.0)
-    currency = Column(String(3), default="USD")
+    currency = Column(String(3), default="INR")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

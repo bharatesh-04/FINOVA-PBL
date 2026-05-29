@@ -130,7 +130,7 @@ After deployment, verify everything works:
 ```
 ✅ Login should work
 ✅ Dashboard should load
-✅ Can view accounts ($5,000 demo balance)
+✅ Can view accounts (INR 5,000 demo balance)
 ✅ Can create transactions
 ✅ Can view all pages
 ```

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './context/store';
-import { authAPI } from './services/api';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -24,9 +23,23 @@ const ProtectedRoute = ({ children }) => {
   return token ? children : <Navigate to="/login" />;
 };
 
+const themeOptions = [
+  { value: 'dark', label: 'Dark' },
+  { value: 'light', label: 'Light' },
+  { value: 'emerald', label: 'Emerald' },
+  { value: 'royal', label: 'Royal' },
+];
+
 function App() {
   const { token, setUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
+  const [theme, setTheme] = useState(() => localStorage.getItem('finance-theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.classList.toggle('dark', theme !== 'light');
+    localStorage.setItem('finance-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     // Load user from localStorage
@@ -38,16 +51,16 @@ function App() {
     }
 
     setIsLoading(false);
-  }, []);
+  }, [setUser]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="app-shell flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mb-4">
             <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full"></div>
           </div>
-          <p className="text-xl font-semibold text-gray-800">Finance Tracker</p>
+          <p className="text-xl font-semibold">Finance Tracker</p>
         </div>
       </div>
     );
@@ -55,9 +68,24 @@ function App() {
 
   return (
     <Router>
-      <Toaster position="top-right" />
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {token && <Navigation />}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: 'var(--app-surface)',
+            border: '1px solid var(--app-border)',
+            color: 'var(--app-text)',
+          },
+        }}
+      />
+      <div className="app-shell min-h-screen">
+        {token && (
+          <Navigation
+            theme={theme}
+            themeOptions={themeOptions}
+            onThemeChange={setTheme}
+          />
+        )}
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />

@@ -38,7 +38,7 @@ export default function SignupPage() {
         email: formData.email,
         full_name: formData.full_name,
         password: formData.password,
-        currency: 'USD',
+        currency: 'INR',
       });
 
       const { access_token, token, user } = response.data;

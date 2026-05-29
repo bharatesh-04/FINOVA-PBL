@@ -39,7 +39,7 @@ Password: demo123456
 - ✅ Logout functionality
 
 #### Data Display
-- ✅ Accounts page shows demo account ($5,000 balance)
+- ✅ Accounts page shows demo account (INR 5,000 balance)
 - ✅ Transactions table with proper formatting
 - ✅ Categories list loading
 - ✅ Budget management interface
@@ -100,8 +100,8 @@ User Account:
 Bank Account:
 - Name: Savings Account
 - Type: Bank
-- Balance: $5,000.00
-- Currency: USD
+- Balance: INR 5,000.00
+- Currency: INR
 
 Categories Available:
 - Food (🍔 Expense)

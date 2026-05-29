@@ -34,7 +34,7 @@
 ✓ Total balance summary card
 ✓ Account grid display with balance
 ✓ Edit and delete functionality
-✓ Currency support (USD, INR, EUR, GBP)
+✓ Currency support (INR, EUR, GBP)
 ✓ Real-time API integration
 ✓ Toast notifications
 ✓ Loading states

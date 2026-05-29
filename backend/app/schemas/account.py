@@ -6,7 +6,7 @@ from typing import Optional
 class AccountBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     account_type: str  # bank, cash, credit_card, upi
-    currency: str = "USD"
+    currency: str = "INR"
 
 class AccountCreate(AccountBase):
     balance: float = 0.0
@@ -14,6 +14,7 @@ class AccountCreate(AccountBase):
 class AccountUpdate(BaseModel):
     name: Optional[str] = None
     balance: Optional[float] = None
+    currency: Optional[str] = None
     is_active: Optional[bool] = None
 
 class AccountResponse(AccountBase):

@@ -11,7 +11,7 @@ Stores user account information
 - hashed_password
 - full_name
 - is_active
-- currency (USD, INR, EUR, etc.)
+- currency (INR)
 - created_at
 - updated_at
 ```
