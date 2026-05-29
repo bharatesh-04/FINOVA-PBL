@@ -92,7 +92,7 @@ print(f"Frontend build exists: {os.path.exists(frontend_build_path)}")
 # Serve static files from React build
 frontend_static_path = os.path.join(frontend_build_path, "static")
 if os.path.exists(frontend_static_path):
-    print(f"✓ Mounting static files from: {frontend_static_path}")
+    print(f"Mounting static files from: {frontend_static_path}")
     app.mount("/static", StaticFiles(directory=frontend_static_path), name="static")
 
 # Catch-all route for SPA (serve index.html for non-API routes)
@@ -110,11 +110,11 @@ async def serve_spa(full_path: str):
     index_file = os.path.join(frontend_build_path, "index.html")
     
     if os.path.exists(index_file):
-        print(f"✓ Serving frontend from: {index_file}")
+        print(f"Serving frontend from: {index_file}")
         return FileResponse(index_file, media_type="text/html")
     
     # Fallback if frontend not built
-    print(f"✗ Frontend not built at: {frontend_build_path}")
+    print(f"Frontend not built at: {frontend_build_path}")
     return {
         "error": "Frontend not built",
         "message": "Run: cd frontend && npm run build",

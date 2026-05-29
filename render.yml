@@ -3,9 +3,11 @@ services:
     name: finance-tracker-api
     env: python
     plan: free
-    buildCommand: python -m pip install --upgrade pip && python -m pip install -r requirements-core.txt
-    startCommand: python -m gunicorn.app.wsgiapp app_demo:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
-    rootDir: backend
+    buildCommand: |
+      cd frontend && npm install && npm run build && cd ../backend && \
+      python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+    startCommand: cd backend && gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+    rootDir: .
     envVars:
       - key: DEBUG
         value: "false"
@@ -13,9 +15,13 @@ services:
         generateValue: true
       - key: ALGORITHM
         value: HS256
+      - key: DATABASE_URL
+        sync: false
       - key: CORS_ORIGINS
-        value: https://finova-qvey.onrender.com
+        value: https://finova-qvey.onrender.com,https://finova-fpr3.onrender.com,http://localhost:3000
       - key: UPLOAD_DIR
         value: /tmp/uploads
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: REACT_APP_API_URL
+        value: https://finova-fpr3.onrender.com/api
