@@ -75,15 +75,24 @@ def health_check():
 if os.path.exists(settings.UPLOAD_DIR):
     app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
-# Get frontend build path - handle both development and production
-frontend_build_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
-if not os.path.exists(frontend_build_path):
-    # Try alternative path for production
-    frontend_build_path = os.path.join(os.path.dirname(__file__), "frontend", "build")
+# Get frontend build path - works in both local and Render environments
+import sys
+# Backend main.py is at: backend/main.py
+# Frontend build is at: frontend/build
+# So from backend/, we go up one level (..) then into frontend/build
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(backend_dir)  # Go up from backend/ to project root
+frontend_build_path = os.path.join(project_root, "frontend", "build")
+
+print(f"Backend directory: {backend_dir}")
+print(f"Project root: {project_root}")
+print(f"Frontend build path: {frontend_build_path}")
+print(f"Frontend build exists: {os.path.exists(frontend_build_path)}")
 
 # Serve static files from React build
 frontend_static_path = os.path.join(frontend_build_path, "static")
 if os.path.exists(frontend_static_path):
+    print(f"✓ Mounting static files from: {frontend_static_path}")
     app.mount("/static", StaticFiles(directory=frontend_static_path), name="static")
 
 # Catch-all route for SPA (serve index.html for non-API routes)
@@ -101,13 +110,17 @@ async def serve_spa(full_path: str):
     index_file = os.path.join(frontend_build_path, "index.html")
     
     if os.path.exists(index_file):
+        print(f"✓ Serving frontend from: {index_file}")
         return FileResponse(index_file, media_type="text/html")
     
     # Fallback if frontend not built
+    print(f"✗ Frontend not built at: {frontend_build_path}")
     return {
         "error": "Frontend not built",
         "message": "Run: cd frontend && npm run build",
-        "frontend_path": frontend_build_path
+        "frontend_path": frontend_build_path,
+        "index_file": index_file,
+        "exists": os.path.exists(index_file)
     }
 
 # Error handlers
