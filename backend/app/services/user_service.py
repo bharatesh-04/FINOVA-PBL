@@ -90,6 +90,6 @@ class UserService:
             minutes=60 * 24  # 24 hours
         )
         return create_access_token(
-            data={"sub": user.id},
+            data={"sub": str(user.id)},
             expires_delta=access_token_expires
         )
