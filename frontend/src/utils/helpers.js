@@ -1,4 +1,3 @@
-import React from 'react';
 import toast from 'react-hot-toast';
 
 export const formatCurrency = (amount, currency = 'INR') => {
@@ -68,6 +67,15 @@ export const showToast = {
     const message = extractErrorMessage(error);
     toast.error(message);
   },
+  warning: (message) => toast(message, {
+    icon: '⚠️',
+    style: {
+      borderRadius: '10px',
+      background: '#fff7ed',
+      color: '#9a5b00',
+      border: '1px solid #fed7aa',
+    },
+  }),
   loading: (message) => toast.loading(message),
 };
 

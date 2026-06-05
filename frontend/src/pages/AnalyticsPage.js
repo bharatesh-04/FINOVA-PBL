@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { analyticsAPI } from '../services/api';
 import { showToast, formatCurrency } from '../utils/helpers';
-import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);

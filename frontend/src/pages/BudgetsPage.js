@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { budgetAPI, categoryAPI } from '../services/api';
 import { showToast, formatCurrency } from '../utils/helpers';
 import { FiPlus, FiTrash2, FiEdit2 } from 'react-icons/fi';
@@ -17,11 +17,7 @@ export default function BudgetsPage() {
     month: currentMonth,
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [budRes, catRes] = await Promise.all([
         budgetAPI.getBudgets({ month: currentMonth }),
@@ -34,7 +30,11 @@ export default function BudgetsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentMonth]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -55,9 +55,25 @@ export default function GoalsPage() {
 
   const handleContribute = async (e) => {
     e.preventDefault();
+    const amount = parseFloat(contributeAmount);
+    if (!amount || amount <= 0) {
+      showToast.error('Enter a valid contribution amount.');
+      return;
+    }
+
     try {
-      await goalAPI.contributeToGoal(contributeId, { amount: parseFloat(contributeAmount) });
-      showToast.success('Contribution added');
+      await goalAPI.contributeToGoal(contributeId, { amount });
+      const goal = goals.find((item) => item.id === contributeId);
+      const nextProgress = ((goal.current_amount + amount) / goal.target_amount) * 100;
+
+      if (nextProgress >= 100) {
+        showToast.success(`Amazing! You hit your ${goal.name} goal.`);
+      } else if (nextProgress >= 80) {
+        showToast.success(`You are ${nextProgress.toFixed(1)}% toward ${goal.name}. Keep going!`);
+      } else {
+        showToast.success(`Added ${formatCurrency(amount)} to ${goal.name}.`);
+      }
+
       setContributeId(null);
       setContributeAmount('');
       loadGoals();
@@ -96,6 +112,11 @@ export default function GoalsPage() {
         >
           <FiPlus /> Add Goal
         </button>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-800 shadow-sm">
+        <p className="text-sm font-semibold">Goal reminder</p>
+        <p className="text-sm">Add contributions to keep your progress visible and celebrate milestones as soon as you reach them.</p>
       </div>
 
       {showForm && (

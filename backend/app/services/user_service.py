@@ -1,6 +1,6 @@
 """User service"""
 from sqlalchemy.orm import Session
-from app.models import User
+from app.models import User, Account, Category
 from app.schemas import UserCreate, UserUpdate
 from app.utils import hash_password, verify_password, create_access_token
 from fastapi import HTTPException, status
@@ -36,7 +36,28 @@ class UserService:
         db.add(user)
         db.commit()
         db.refresh(user)
-        
+
+        default_categories = [
+            {"name": "Food", "icon": "🍔", "color": "#FF6B6B", "category_type": "expense"},
+            {"name": "Travel", "icon": "✈️", "color": "#4ECDC4", "category_type": "expense"},
+            {"name": "Entertainment", "icon": "🎬", "color": "#95E1D3", "category_type": "expense"},
+            {"name": "Shopping", "icon": "🛍️", "color": "#FFB3B3", "category_type": "expense"},
+            {"name": "Salary", "icon": "💰", "color": "#52B788", "category_type": "income"},
+        ]
+
+        db.add_all([
+            Category(user_id=user.id, is_default=True, **cat) for cat in default_categories
+        ])
+        db.add(Account(
+            user_id=user.id,
+            name="Main Wallet",
+            account_type="cash",
+            balance=0.0,
+            currency=user.currency or "INR",
+            is_active=True,
+        ))
+        db.commit()
+
         return user
     
     @staticmethod
