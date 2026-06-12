@@ -8,6 +8,7 @@ from .goal_routes import router as goal_router
 from .recurring_routes import router as recurring_router
 from .analytics_routes import router as analytics_router
 from .bill_routes import router as bill_router
+from .chat_routes import router as chat_router
 
 __all__ = [
     "auth_router",
@@ -18,5 +19,6 @@ __all__ = [
     "goal_router",
     "recurring_router",
     "analytics_router",
-    "bill_router"
+    "bill_router",
+    "chat_router"
 ]

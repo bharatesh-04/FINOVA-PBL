@@ -11,7 +11,7 @@ from app.database import init_db
 from app.routes import (
     auth_router, transaction_router, account_router,
     category_router, budget_router, goal_router,
-    recurring_router, analytics_router, bill_router
+    recurring_router, analytics_router, bill_router, chat_router
 )
 
 # Initialize database
@@ -54,6 +54,7 @@ app.include_router(goal_router)
 app.include_router(recurring_router)
 app.include_router(analytics_router)
 app.include_router(bill_router)
+app.include_router(chat_router)
 
 # Root endpoint
 @app.get("/")

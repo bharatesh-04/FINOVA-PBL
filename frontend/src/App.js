@@ -16,6 +16,7 @@ import BillsPage from './pages/BillsPage';
 
 // Layout
 import Navigation from './components/Navigation';
+import AIChatBot from './components/AIChatBot';
 
 // Protected Route
 const ProtectedRoute = ({ children }) => {
@@ -86,6 +87,7 @@ function App() {
             onThemeChange={setTheme}
           />
         )}
+        {token && <AIChatBot />}
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />

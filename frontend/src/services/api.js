@@ -117,4 +117,8 @@ export const billAPI = {
   deleteBill: (id) => api.delete(`/bills/${id}`),
 };
 
+export const chatAPI = {
+  sendMessage: (message) => api.post('/chat', { message }),
+};
+
 export default api;

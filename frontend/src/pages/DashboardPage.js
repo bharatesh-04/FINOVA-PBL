@@ -141,11 +141,6 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
       <p className="text-gray-600 mb-8">Manage expenses, review visual reports, unlock AI insights, and scan bills from one place.</p>
 
-      <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 shadow-sm">
-        <p className="text-sm font-semibold">Useful tip</p>
-        <p className="text-sm">Your dashboard now highlights savings progress and unusual spending alerts so you can act faster.</p>
-      </div>
-
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="card">
