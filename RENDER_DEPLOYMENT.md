@@ -201,6 +201,49 @@ git push origin main
 
 ---
 
+## 🔐 Resilience: Database Unavailability (Postgres suspended)
+
+If your managed Postgres instance is suspended or temporarily unreachable, the application can fail at startup when it attempts to connect. To make deployments resilient we recommend the following options:
+
+- Automatic local fallback (recommended): The backend includes a safe fallback which will attempt to connect to the configured `DATABASE_URL` and — if that fails — automatically fall back to a local SQLite file (a lightweight DB file written to the application volume). This keeps the app running in a degraded mode so users can still access the UI and non-persistent features.
+
+- Maintenance/Read-only page: If you prefer to show a maintenance message while database access is unavailable, add a simple middleware or a feature-flag that returns a friendly maintenance page until the DB is restored. See snippet below.
+
+Snippet: simple maintenance switch (FastAPI middleware)
+
+```python
+from fastapi import FastAPI, Request
+from fastapi.responses import PlainTextResponse
+import os
+
+MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "false").lower() == "true"
+
+app = FastAPI()
+
+@app.middleware("http")
+async def check_maintenance(request: Request, call_next):
+   if MAINTENANCE_MODE and not request.url.path.startswith("/health"):
+      return PlainTextResponse("Service temporarily unavailable - maintenance", status_code=503)
+   return await call_next(request)
+```
+
+How to use with Render
+
+1. Keep your `DATABASE_URL` set to the managed Postgres connection string (so persistent DB is used when available).
+2. Optionally set `MAINTENANCE_MODE=true` in Render Environment variables to display a maintenance page while you investigate.
+3. If Postgres is suspended and you prefer the app to continue running, rely on the automatic fallback (no changes needed). Review logs to confirm fallback occurred (`WARNING: primary database unavailable, falling back to SQLite:`).
+
+Logs and monitoring
+
+- Check backend logs for the fallback warning message above.
+- Use the health endpoint `/health` for uptime checks. When using fallback, `/health` will still return healthy but note that data persistence is degraded.
+
+Security note
+
+The SQLite fallback is intended for short-term resilience and testing; for production data durability continue using a managed Postgres instance and re-enable it as soon as possible.
+
+---
+
 ## 📦 Adding PostgreSQL (Optional)
 
 For production database that persists data:

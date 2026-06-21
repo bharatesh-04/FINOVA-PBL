@@ -83,13 +83,17 @@ export default function TransactionsPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg)' }}>
+        <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="w-full">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Transactions</h1>
+        <h1 style={{ fontSize: '36px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>Transactions</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="btn-primary flex items-center gap-2"
@@ -98,8 +102,7 @@ export default function TransactionsPage() {
         </button>
       </div>
 
-      {showForm && (
-        <div className="card mb-8">
+      <div className="card mb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select
@@ -192,55 +195,102 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      <div className="card overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left p-4">Date</th>
-              <th className="text-left p-4">Description</th>
-              <th className="text-left p-4">Category</th>
-              <th className="text-left p-4">Merchant</th>
-              <th className="text-right p-4">Amount</th>
-              <th className="text-center p-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((trans) => (
-              <tr key={trans.id} className="border-b hover:bg-gray-50">
-                <td className="p-4">{formatDate(trans.date)}</td>
-                <td className="p-4">{trans.description}</td>
-                <td className="p-4">{categories.find((c) => c.id === trans.category_id)?.name}</td>
-                <td className="p-4">{trans.merchant}</td>
-                <td className={`p-4 text-right font-bold ${trans.transaction_type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                  {trans.transaction_type === 'income' ? '+' : '-'} {formatCurrency(trans.amount)}
-                </td>
-                <td className="p-4 text-center space-x-2">
-                  <button
-                    onClick={() => {
-                      setEditingId(trans.id);
-                      setFormData({
-                        account_id: trans.account_id,
-                        category_id: trans.category_id,
-                        amount: trans.amount,
-                        transaction_type: trans.transaction_type,
-                        merchant: trans.merchant,
-                        description: trans.description,
-                        date: trans.date.split('T')[0],
-                      });
-                      setShowForm(true);
-                    }}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <FiEdit2 />
-                  </button>
-                  <button onClick={() => handleDelete(trans.id)} className="text-red-600 hover:text-red-800">
-                    <FiTrash2 />
-                  </button>
-                </td>
+      <div className="table-container">
+        <div className="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Merchant</th>
+                <th style={{ textAlign: 'right' }}>Amount</th>
+                <th style={{ textAlign: 'center' }}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {transactions.length > 0 ? (
+                transactions.map((trans) => (
+                  <tr key={trans.id}>
+                    <td>{formatDate(trans.date)}</td>
+                    <td>{trans.description}</td>
+                    <td>
+                      <span className="badge">
+                        {categories.find((c) => c.id === trans.category_id)?.name || 'Other'}
+                      </span>
+                    </td>
+                    <td>{trans.merchant || '-'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                      <span
+                        style={{
+                          color: trans.transaction_type === 'income' ? 'var(--success)' : 'var(--danger)',
+                        }}
+                      >
+                        {trans.transaction_type === 'income' ? '+' : '-'} {formatCurrency(trans.amount)}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <button
+                        onClick={() => {
+                          setEditingId(trans.id);
+                          setFormData({
+                            account_id: trans.account_id,
+                            category_id: trans.category_id,
+                            amount: trans.amount,
+                            transaction_type: trans.transaction_type,
+                            merchant: trans.merchant,
+                            description: trans.description,
+                            date: trans.date.split('T')[0],
+                          });
+                          setShowForm(true);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--primary)',
+                          padding: '4px 8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          borderRadius: '4px',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                      >
+                        <FiEdit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(trans.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--danger)',
+                          padding: '4px 8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          borderRadius: '4px',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--danger-light)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '32px' }}>
+                    No transactions found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

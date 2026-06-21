@@ -14,8 +14,9 @@ from app.routes import (
     recurring_router, analytics_router, bill_router, chat_router
 )
 
-# Initialize database
-init_db()
+# Database initialization is performed during application startup
+# to avoid connecting at import time (which prevents the app from
+# failing when an external DB is temporarily unavailable).
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

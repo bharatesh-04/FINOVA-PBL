@@ -68,14 +68,18 @@ export default function AccountsPage() {
     }
   };
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg)' }}>
+      <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+    </div>
+  );
 
   const totalBalance = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="w-full">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Accounts</h1>
+        <h1 style={{ fontSize: '36px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>Accounts</h1>
         <button
           onClick={() => { setShowForm(!showForm); setEditingId(null); }}
           className="btn-primary flex items-center gap-2"
@@ -84,15 +88,17 @@ export default function AccountsPage() {
         </button>
       </div>
 
-      <div className="card mb-8 bg-blue-50 border-l-4 border-blue-500">
-        <h2 className="text-xl font-semibold text-gray-800">Total Balance</h2>
-        <p className="text-3xl font-bold text-blue-600 mt-2">{formatCurrency(totalBalance)}</p>
+      <div className="card mb-8" style={{ borderLeft: `4px solid var(--primary)`, background: 'var(--primary-bg)' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text)' }}>Total Balance</h2>
+        <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--primary)', marginTop: '8px' }}>{formatCurrency(totalBalance)}</p>
       </div>
 
       {showForm && (
         <div className="card mb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <h3 className="text-lg font-semibold mb-4">{editingId ? 'Edit Account' : 'New Account'}</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text)', marginBottom: '16px' }}>
+              {editingId ? 'Edit Account' : 'New Account'}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
@@ -152,27 +158,45 @@ export default function AccountsPage() {
           <div key={account.id} className="card">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">{account.name}</h3>
-                <p className="text-sm text-gray-600 capitalize">{account.account_type}</p>
+                <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>{account.name}</h3>
+                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{account.account_type}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleEdit(account)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                  style={{
+                    padding: '8px',
+                    color: 'var(--primary)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                 >
                   <FiEdit2 />
                 </button>
                 <button
                   onClick={() => handleDelete(account.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded"
+                  style={{
+                    padding: '8px',
+                    color: 'var(--danger)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--danger-light)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                 >
                   <FiTrash2 />
                 </button>
               </div>
             </div>
-            <div className="border-t pt-4">
-              <p className="text-sm text-gray-600">Balance</p>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(account.balance)}</p>
+            <div style={{ borderTop: `1px solid var(--border)`, paddingTop: '16px' }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Balance</p>
+              <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--success)', marginTop: '4px' }}>{formatCurrency(account.balance)}</p>
             </div>
           </div>
         ))}

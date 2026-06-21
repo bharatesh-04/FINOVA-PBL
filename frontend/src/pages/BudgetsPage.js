@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { budgetAPI, categoryAPI } from '../services/api';
 import { showToast, formatCurrency } from '../utils/helpers';
-import { FiPlus, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiEdit2, FiZap, FiRefreshCw, FiCheckCircle } from 'react-icons/fi';
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState([]);
@@ -9,7 +9,16 @@ export default function BudgetsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [smartPlan, setSmartPlan] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isApplyingSmartBudget, setIsApplyingSmartBudget] = useState(false);
   const [currentMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [generatorSettings, setGeneratorSettings] = useState({
+    lookback_months: 3,
+    savings_target_percent: 20,
+    buffer_percent: 10,
+    overwrite: true,
+  });
   const [formData, setFormData] = useState({
     category_id: '',
     limit_amount: '',
@@ -66,6 +75,46 @@ export default function BudgetsPage() {
     }
   };
 
+  const loadSmartBudget = async () => {
+    try {
+      setIsGenerating(true);
+      const response = await budgetAPI.getSmartRecommendations({
+        month: currentMonth,
+        ...generatorSettings,
+      });
+      setSmartPlan(response.data || null);
+      if (!response.data?.recommendations?.length) {
+        showToast.warning('Add a few expense transactions before generating smart budgets.');
+      }
+    } catch (error) {
+      showToast.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleApplySmartBudget = async () => {
+    if (!smartPlan?.recommendations?.length) {
+      showToast.warning('Generate a smart budget first.');
+      return;
+    }
+
+    try {
+      setIsApplyingSmartBudget(true);
+      const response = await budgetAPI.applySmartBudget({
+        month: currentMonth,
+        ...generatorSettings,
+      });
+      showToast.success(`${response.data?.applied_count || 0} smart budgets applied`);
+      await loadData();
+      await loadSmartBudget();
+    } catch (error) {
+      showToast.error(error);
+    } finally {
+      setIsApplyingSmartBudget(false);
+    }
+  };
+
   const handleEdit = (budget) => {
     setFormData(budget);
     setEditingId(budget.id);
@@ -84,27 +133,42 @@ export default function BudgetsPage() {
     }
   };
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg)' }}>
+      <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+    </div>
+  );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+    <div className="w-full">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Monthly Budget</h1>
-          <p className="text-gray-600">{currentMonth}</p>
+          <h1 style={{ fontSize: '36px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>Monthly Budget</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>{currentMonth}</p>
         </div>
-        <button
-          onClick={() => { setShowForm(!showForm); setEditingId(null); }}
-          className="btn-primary flex items-center gap-2"
-        >
-          <FiPlus /> Add Budget
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={loadSmartBudget}
+            disabled={isGenerating}
+            className="btn-secondary flex items-center gap-2 disabled:opacity-60"
+          >
+            <FiZap /> {isGenerating ? 'Generating...' : 'Smart Generator'}
+          </button>
+          <button
+            onClick={() => { setShowForm(!showForm); setEditingId(null); }}
+            className="btn-primary flex items-center gap-2"
+          >
+            <FiPlus /> Add Budget
+          </button>
+        </div>
       </div>
 
       {showForm && (
         <div className="card mb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <h3 className="text-lg font-semibold mb-4">{editingId ? 'Edit Budget' : 'New Budget'}</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text)', marginBottom: '16px' }}>
+              {editingId ? 'Edit Budget' : 'New Budget'}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select
                 value={formData.category_id}
@@ -129,7 +193,7 @@ export default function BudgetsPage() {
                 className="input-field"
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>
                   Alert Threshold: {(formData.alert_threshold * 100).toFixed(0)}%
                 </label>
                 <input
@@ -159,10 +223,155 @@ export default function BudgetsPage() {
         </div>
       )}
 
+      <div className="card mb-8">
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FiZap style={{ color: 'var(--warning)' }} /> Smart Budget Generator
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>Generate category limits from your recent spending and savings target.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={loadSmartBudget}
+              disabled={isGenerating}
+              className="btn-secondary inline-flex items-center gap-2 disabled:opacity-60"
+            >
+              <FiRefreshCw /> {isGenerating ? 'Generating...' : 'Generate'}
+            </button>
+            <button
+              type="button"
+              onClick={handleApplySmartBudget}
+              disabled={isApplyingSmartBudget || !smartPlan?.recommendations?.length}
+              className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
+            >
+              <FiCheckCircle /> {isApplyingSmartBudget ? 'Applying...' : 'Apply Plan'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <label className="block">
+            <span style={{ display: 'block', fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Lookback</span>
+            <select
+              value={generatorSettings.lookback_months}
+              onChange={(e) => setGeneratorSettings({ ...generatorSettings, lookback_months: Number(e.target.value) })}
+              className="input-field"
+            >
+              <option value={1}>1 month</option>
+              <option value={3}>3 months</option>
+              <option value={6}>6 months</option>
+              <option value={12}>12 months</option>
+            </select>
+          </label>
+          <label className="block">
+            <span style={{ display: 'block', fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Savings target</span>
+            <input
+              type="number"
+              min="0"
+              max="90"
+              value={generatorSettings.savings_target_percent}
+              onChange={(e) => setGeneratorSettings({ ...generatorSettings, savings_target_percent: Number(e.target.value) })}
+              className="input-field"
+            />
+          </label>
+          <label className="block">
+            <span style={{ display: 'block', fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Buffer</span>
+            <input
+              type="number"
+              min="0"
+              max="50"
+              value={generatorSettings.buffer_percent}
+              onChange={(e) => setGeneratorSettings({ ...generatorSettings, buffer_percent: Number(e.target.value) })}
+              className="input-field"
+            />
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', borderRadius: '8px', border: `1px solid var(--border)`, padding: '12px 16px' }}>
+            <input
+              type="checkbox"
+              checked={generatorSettings.overwrite}
+              onChange={(e) => setGeneratorSettings({ ...generatorSettings, overwrite: e.target.checked })}
+            />
+            <span style={{ fontSize: '14px', color: 'var(--text)' }}>Update existing budgets</span>
+          </label>
+        </div>
+
+        {smartPlan ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div style={{ borderRadius: '8px', border: `1px solid var(--border)`, padding: '16px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Monthly income</p>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginTop: '4px' }}>{formatCurrency(smartPlan.monthly_income || 0)}</p>
+              </div>
+              <div style={{ borderRadius: '8px', border: `1px solid var(--border)`, padding: '16px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Spending cap</p>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginTop: '4px' }}>
+                  {smartPlan.spending_cap ? formatCurrency(smartPlan.spending_cap) : 'No income data'}
+                </p>
+              </div>
+              <div style={{ borderRadius: '8px', border: `1px solid var(--border)`, padding: '16px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Recommended total</p>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary)', marginTop: '4px' }}>{formatCurrency(smartPlan.total_recommended || 0)}</p>
+              </div>
+              <div style={{ borderRadius: '8px', border: `1px solid var(--border)`, padding: '16px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Confidence</p>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--success)', marginTop: '4px' }}>{Math.round((smartPlan.confidence || 0) * 100)}%</p>
+              </div>
+            </div>
+
+            {smartPlan.recommendations?.length > 0 ? (
+              <div className="space-y-3">
+                {smartPlan.recommendations.map((item) => (
+                  <div key={item.category_id} style={{ borderRadius: '8px', border: `1px solid var(--border)`, padding: '16px' }}>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: item.category_color || 'var(--primary)' }}
+                        />
+                        <div>
+                          <p style={{ fontWeight: 600, color: 'var(--text)' }}>{item.category_name}</p>
+                          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.reason}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm md:text-right">
+                        <div>
+                          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Average</p>
+                          <p style={{ fontWeight: 600, color: 'var(--text)' }}>{formatCurrency(item.average_monthly)}</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Suggested</p>
+                          <p style={{ fontWeight: 600, color: 'var(--primary)' }}>{formatCurrency(item.recommended_limit)}</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Current</p>
+                          <p style={{ fontWeight: 600, color: 'var(--text)' }}>
+                            {item.existing_limit ? formatCurrency(item.existing_limit) : 'None'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ borderRadius: '8px', border: `1px dashed var(--border)`, padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                No recommendations yet. Add expense transactions, then generate again.
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ borderRadius: '8px', border: `1px dashed var(--border)`, padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            Generate a smart plan to preview recommended limits for {currentMonth}.
+          </div>
+        )}
+      </div>
+
       <div className="space-y-4">
         {budgets.length === 0 ? (
-          <div className="card text-center py-12">
-            <p className="text-gray-600 text-lg">No budgets for this month</p>
+          <div className="card" style={{ textAlign: 'center', padding: '48px 16px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '18px' }}>No budgets for this month</p>
           </div>
         ) : (
           budgets.map((budget) => {
@@ -174,19 +383,37 @@ export default function BudgetsPage() {
               <div key={budget.id} className="card">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{budget.category?.name}</h3>
-                    <p className="text-sm text-gray-600">{budget.month}</p>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>{budget.category?.name}</h3>
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{budget.month}</p>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(budget)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                      style={{
+                        padding: '8px',
+                        color: 'var(--primary)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                     >
                       <FiEdit2 />
                     </button>
                     <button
                       onClick={() => handleDelete(budget.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                      style={{
+                        padding: '8px',
+                        color: 'var(--danger)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--danger-light)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                     >
                       <FiTrash2 />
                     </button>
@@ -194,32 +421,43 @@ export default function BudgetsPage() {
                 </div>
 
                 <div className="mb-4">
-                  <div className={`w-full rounded-full h-3 ${
-                    isOverBudget ? 'bg-red-200' : isNearLimit ? 'bg-yellow-200' : 'bg-gray-200'
-                  }`}>
+                  <div
+                    style={{
+                      width: '100%',
+                      borderRadius: '9999px',
+                      height: '12px',
+                      background: isOverBudget ? 'var(--danger-light)' : isNearLimit ? 'var(--warning-light)' : 'var(--bg)',
+                    }}
+                  >
                     <div
-                      className={`h-3 rounded-full transition-all ${
-                        isOverBudget ? 'bg-red-500' : isNearLimit ? 'bg-yellow-500' : 'bg-green-500'
-                      }`}
-                      style={{ width: `${Math.min(spendPercentage, 100)}%` }}
+                      style={{
+                        height: '12px',
+                        borderRadius: '9999px',
+                        transition: 'all 200ms ease',
+                        width: `${Math.min(spendPercentage, 100)}%`,
+                        background: isOverBudget ? 'var(--danger)' : isNearLimit ? 'var(--warning)' : 'var(--success)',
+                      }}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-xs text-gray-600">Spent</p>
-                    <p className="font-semibold text-gray-800">{formatCurrency(budget.spent_amount)}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Spent</p>
+                    <p style={{ fontWeight: 600, color: 'var(--text)' }}>{formatCurrency(budget.spent_amount)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Limit</p>
-                    <p className="font-semibold text-gray-800">{formatCurrency(budget.limit_amount)}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Limit</p>
+                    <p style={{ fontWeight: 600, color: 'var(--text)' }}>{formatCurrency(budget.limit_amount)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Status</p>
-                    <p className={`font-semibold ${
-                      isOverBudget ? 'text-red-600' : isNearLimit ? 'text-yellow-600' : 'text-green-600'
-                    }`}>
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Status</p>
+                    <p
+                      style={{
+                        fontWeight: 600,
+                        color: isOverBudget ? 'var(--danger)' : isNearLimit ? 'var(--warning)' : 'var(--success)',
+                      }}
+                    >
                       {isOverBudget 
                         ? `Over by ${formatCurrency(budget.spent_amount - budget.limit_amount)}`
                         : `${formatCurrency(budget.limit_amount - budget.spent_amount)} left`
@@ -228,7 +466,7 @@ export default function BudgetsPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 text-xs text-gray-600">
+                <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                   {spendPercentage.toFixed(1)}% of budget used
                 </div>
               </div>

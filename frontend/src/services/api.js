@@ -78,6 +78,8 @@ export const budgetAPI = {
   getBudgets: (params) => api.get('/budgets', { params: normalizeParams(params, 'month') }),
   updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
   deleteBudget: (id) => api.delete(`/budgets/${id}`),
+  getSmartRecommendations: (params) => api.get('/budgets/smart/recommendations', { params }),
+  applySmartBudget: (data) => api.post('/budgets/smart/apply', data),
 };
 
 export const goalAPI = {

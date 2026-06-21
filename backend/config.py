@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # App settings
     APP_NAME: str = "FINNOVA"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    DEBUG: bool | str = True
     
     # Database settings
     DATABASE_URL: str = "sqlite:///./finance_tracker.db"  # SQLite for local dev
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     MODEL_PATH: str = "ml_models"
     
     # CORS settings
-    CORS_ORIGINS: list = [
+    CORS_ORIGINS: list[str] | str = [
         "http://localhost:3000", 
         "http://localhost:8000",
         "https://finova-qvey.onrender.com",
@@ -45,9 +45,13 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
     
     def __init__(self, **data):
         super().__init__(**data)
+        if isinstance(self.DEBUG, str):
+            self.DEBUG = self.DEBUG.strip().lower() in {"1", "true", "yes", "on", "debug"}
+
         # Parse CORS_ORIGINS from environment if it's a string
         if isinstance(self.CORS_ORIGINS, str):
             self.CORS_ORIGINS = [origin.strip() for origin in self.CORS_ORIGINS.split(",")]

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { FiMessageCircle, FiSend, FiX } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiMessageCircle, FiMic, FiMicOff, FiSend, FiVolume2, FiX } from 'react-icons/fi';
 import { chatAPI } from '../services/api';
 import { extractErrorMessage } from '../utils/helpers';
 
@@ -19,16 +20,61 @@ const initialSuggestions = [
 ];
 
 export default function AIChatBot() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
   const [suggestions, setSuggestions] = useState(initialSuggestions);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceReplies, setVoiceReplies] = useState(true);
   const inputRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const shouldSpeakRef = useRef(false);
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const voiceSupported = Boolean(SpeechRecognition);
+  const canSpeak = 'speechSynthesis' in window;
 
   const openChat = () => {
     setIsOpen(true);
     window.setTimeout(() => inputRef.current?.focus(), 80);
+  };
+
+  const speak = (text) => {
+    if (!canSpeak || !voiceReplies || !text) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-IN';
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleLocalCommand = (text) => {
+    const normalized = text.toLowerCase();
+    const routes = [
+      { label: 'Dashboard', path: '/dashboard', terms: ['dashboard', 'home'] },
+      { label: 'Transactions', path: '/transactions', terms: ['transactions', 'expenses', 'expense list'] },
+      { label: 'Accounts', path: '/accounts', terms: ['accounts', 'balance'] },
+      { label: 'Budgets', path: '/budgets', terms: ['budgets', 'budget', 'smart budget', 'generate budget'] },
+      { label: 'Goals', path: '/goals', terms: ['goals', 'saving goals'] },
+      { label: 'Analytics', path: '/analytics', terms: ['analytics', 'prediction', 'forecast', 'reports'] },
+      { label: 'Bills', path: '/bills', terms: ['bills', 'receipts', 'scanner'] },
+    ];
+
+    const route = routes.find((item) => (
+      (normalized.includes('open') || normalized.includes('show') || normalized.includes('go to') || normalized.includes('generate'))
+      && item.terms.some((term) => normalized.includes(term))
+    ));
+
+    if (!route) {
+      return null;
+    }
+
+    navigate(route.path);
+    return `Opening ${route.label}.`;
   };
 
   const sendMessage = async (text) => {
@@ -45,18 +91,41 @@ export default function AIChatBot() {
 
     setMessages((current) => [...current, userMessage]);
     setInput('');
-    setIsSending(true);
 
-    try {
-      const response = await chatAPI.sendMessage(trimmed);
+    const localReply = handleLocalCommand(trimmed);
+    if (localReply) {
       setMessages((current) => [
         ...current,
         {
           id: `${Date.now()}-assistant`,
           role: 'assistant',
-          text: response.data?.message || 'I could not find an answer for that yet.',
+          text: localReply,
         },
       ]);
+      if (shouldSpeakRef.current) {
+        speak(localReply);
+        shouldSpeakRef.current = false;
+      }
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const response = await chatAPI.sendMessage(trimmed);
+      const replyText = response.data?.message || 'I could not find an answer for that yet.';
+      setMessages((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-assistant`,
+          role: 'assistant',
+          text: replyText,
+        },
+      ]);
+      if (shouldSpeakRef.current) {
+        speak(replyText);
+        shouldSpeakRef.current = false;
+      }
       if (Array.isArray(response.data?.suggestions) && response.data.suggestions.length > 0) {
         setSuggestions(response.data.suggestions);
       }
@@ -73,6 +142,54 @@ export default function AIChatBot() {
       setIsSending(false);
       window.setTimeout(() => inputRef.current?.focus(), 80);
     }
+  };
+
+  const startVoiceInput = () => {
+    if (!voiceSupported || isSending) {
+      setMessages((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-voice-error`,
+          role: 'assistant',
+          text: 'Voice input is not available in this browser.',
+        },
+      ]);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript || '';
+      setInput(transcript);
+      shouldSpeakRef.current = true;
+      sendMessage(transcript);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      setMessages((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-voice-error`,
+          role: 'assistant',
+          text: 'I could not hear that clearly. Try again.',
+        },
+      ]);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    setIsListening(true);
+    recognition.start();
+  };
+
+  const stopVoiceInput = () => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
   };
 
   const handleSubmit = (event) => {
@@ -97,15 +214,29 @@ export default function AIChatBot() {
               <p className="truncate text-sm font-semibold">FINNOVA AI</p>
               <p className="truncate text-xs" style={{ color: 'var(--app-muted)' }}>Finance assistant</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
-              aria-label="Close chat"
-              title="Close chat"
-            >
-              <FiX size={18} />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setVoiceReplies((value) => !value)}
+                disabled={!canSpeak}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-gray-100 disabled:opacity-40 ${
+                  voiceReplies ? 'text-blue-600' : ''
+                }`}
+                aria-label={voiceReplies ? 'Disable voice replies' : 'Enable voice replies'}
+                title={voiceReplies ? 'Disable voice replies' : 'Enable voice replies'}
+              >
+                <FiVolume2 size={17} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
+                aria-label="Close chat"
+                title="Close chat"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
           </header>
 
           <div className="max-h-80 space-y-3 overflow-y-auto px-4 py-4">
@@ -149,6 +280,18 @@ export default function AIChatBot() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={isListening ? stopVoiceInput : startVoiceInput}
+                disabled={!voiceSupported || isSending}
+                className={`btn-secondary inline-flex h-10 w-10 items-center justify-center p-0 disabled:opacity-60 ${
+                  isListening ? 'text-red-500' : ''
+                }`}
+                aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+                title={isListening ? 'Stop listening' : 'Start voice input'}
+              >
+                {isListening ? <FiMicOff size={17} /> : <FiMic size={17} />}
+              </button>
               <input
                 ref={inputRef}
                 value={input}
@@ -167,6 +310,9 @@ export default function AIChatBot() {
                 <FiSend size={17} />
               </button>
             </form>
+            {isListening && (
+              <p className="mt-2 text-xs" style={{ color: 'var(--app-muted)' }}>Listening...</p>
+            )}
           </div>
         </section>
       )}

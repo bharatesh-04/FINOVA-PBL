@@ -17,6 +17,16 @@ class BudgetUpdate(BaseModel):
     alert_threshold: Optional[float] = None
     is_active: Optional[int] = None
 
+class BudgetCategorySummary(BaseModel):
+    id: int
+    name: str
+    icon: Optional[str] = None
+    color: str
+    category_type: str
+
+    class Config:
+        from_attributes = True
+
 class BudgetResponse(BudgetBase):
     id: int
     user_id: int
@@ -24,6 +34,7 @@ class BudgetResponse(BudgetBase):
     is_active: int
     created_at: datetime
     updated_at: datetime
+    category: Optional[BudgetCategorySummary] = None
     
     class Config:
         from_attributes = True

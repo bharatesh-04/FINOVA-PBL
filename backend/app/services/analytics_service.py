@@ -194,7 +194,7 @@ class AnalyticsService:
         user_id: int,
         days_ahead: int = 30
     ) -> Dict:
-        """Forecast future expenses"""
+        """Forecast future expenses with trend and category detail."""
         # Get last 90 days of transactions
         ninety_days_ago = datetime.utcnow() - timedelta(days=90)
         
@@ -207,25 +207,97 @@ class AnalyticsService:
         ).all()
         
         if not transactions:
-            return {"forecast": 0, "confidence": 0}
+            return {
+                "forecast": 0,
+                "confidence": 0,
+                "days_ahead": days_ahead,
+                "daily_average": 0,
+                "weekly_projection": 0,
+                "trend": "stable",
+                "trend_percent": 0,
+                "transactions_analyzed": 0,
+                "history_days": 0,
+                "projected_by_category": [],
+                "top_risk_category": None,
+                "message": "Add expense transactions to unlock predictions.",
+            }
         
         # Group by date
         daily_spending = {}
+        category_spending = {}
         for trans in transactions:
             date_key = trans.date.date()
             daily_spending[date_key] = daily_spending.get(date_key, 0) + trans.amount
+            category_name = trans.category.name if trans.category else "Other"
+            category_spending[category_name] = category_spending.get(category_name, 0) + trans.amount
         
         # Prepare data for prediction
         data = [
             {"date": date, "amount": amount}
             for date, amount in daily_spending.items()
         ]
+        data = sorted(data, key=lambda item: item["date"])
         
         expense_predictor.train(data)
         forecast = expense_predictor.predict_next_month(data, days_ahead)
+
+        total_spent = sum(item["amount"] for item in data)
+        history_days = max((max(daily_spending) - min(daily_spending)).days + 1, 1)
+        fallback_forecast = (total_spent / history_days) * days_ahead
+        if forecast <= 0:
+            forecast = fallback_forecast
+
+        recent_start = datetime.utcnow() - timedelta(days=30)
+        previous_start = datetime.utcnow() - timedelta(days=60)
+        recent_total = sum(
+            trans.amount for trans in transactions
+            if trans.date >= recent_start
+        )
+        previous_total = sum(
+            trans.amount for trans in transactions
+            if previous_start <= trans.date < recent_start
+        )
+        trend_percent = (
+            ((recent_total - previous_total) / previous_total) * 100
+            if previous_total > 0 else 0
+        )
+        if trend_percent > 8:
+            trend = "increasing"
+        elif trend_percent < -8:
+            trend = "decreasing"
+        else:
+            trend = "stable"
+
+        category_total = sum(category_spending.values()) or 1
+        projected_by_category = []
+        for category, amount in sorted(category_spending.items(), key=lambda item: item[1], reverse=True):
+            share = amount / category_total
+            projected_by_category.append({
+                "category": category,
+                "historical_amount": float(amount),
+                "share_percent": round(share * 100, 1),
+                "projected_amount": round(float(forecast * share), 2),
+            })
+
+        sample_score = min(len(data) / 30, 1) * 0.35
+        transaction_score = min(len(transactions) / 60, 1) * 0.25
+        span_score = min(history_days / 90, 1) * 0.25
+        confidence = round(min(0.95, 0.15 + sample_score + transaction_score + span_score), 2)
         
         return {
-            "forecast": forecast,
+            "forecast": round(float(forecast), 2),
             "days_ahead": days_ahead,
-            "daily_average": forecast / days_ahead if days_ahead > 0 else 0
+            "daily_average": round(float(forecast / days_ahead), 2) if days_ahead > 0 else 0,
+            "weekly_projection": round(float((forecast / days_ahead) * 7), 2) if days_ahead > 0 else 0,
+            "confidence": confidence,
+            "trend": trend,
+            "trend_percent": round(float(trend_percent), 1),
+            "transactions_analyzed": len(transactions),
+            "history_days": history_days,
+            "projected_by_category": projected_by_category[:6],
+            "top_risk_category": projected_by_category[0] if projected_by_category else None,
+            "message": (
+                "Prediction is based on your last 90 days of expenses. "
+                "More transactions improve confidence."
+            ),
         }

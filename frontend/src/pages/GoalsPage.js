@@ -100,12 +100,16 @@ export default function GoalsPage() {
     }
   };
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg)' }}>
+      <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+    </div>
+  );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="w-full">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Financial Goals</h1>
+        <h1 style={{ fontSize: '36px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>Financial Goals</h1>
         <button
           onClick={() => { setShowForm(!showForm); setEditingId(null); }}
           className="btn-primary flex items-center gap-2"
@@ -114,15 +118,17 @@ export default function GoalsPage() {
         </button>
       </div>
 
-      <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-800 shadow-sm">
-        <p className="text-sm font-semibold">Goal reminder</p>
-        <p className="text-sm">Add contributions to keep your progress visible and celebrate milestones as soon as you reach them.</p>
+      <div style={{ marginBottom: '24px', borderRadius: '12px', border: `1px solid var(--info-light)`, background: 'var(--info-bg)', padding: '16px', boxShadow: 'var(--shadow-sm)' }}>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--info)', margin: 0 }}>Goal reminder</p>
+        <p style={{ fontSize: '14px', color: 'var(--info)', marginTop: '4px', margin: 0 }}>Add contributions to keep your progress visible and celebrate milestones as soon as you reach them.</p>
       </div>
 
       {showForm && (
         <div className="card mb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <h3 className="text-lg font-semibold mb-4">{editingId ? 'Edit Goal' : 'New Goal'}</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text)', marginBottom: '16px' }}>
+              {editingId ? 'Edit Goal' : 'New Goal'}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
@@ -194,38 +200,61 @@ export default function GoalsPage() {
             <div key={goal.id} className="card">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">{goal.name}</h3>
-                  <p className="text-sm text-gray-600">{goal.category}</p>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>{goal.name}</h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{goal.category}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(goal)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    style={{
+                      padding: '8px',
+                      color: 'var(--primary)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                   >
                     <FiEdit2 />
                   </button>
                   <button
                     onClick={() => handleDelete(goal.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    style={{
+                      padding: '8px',
+                      color: 'var(--danger)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--danger-light)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                   >
                     <FiTrash2 />
                   </button>
                 </div>
               </div>
 
-              {goal.description && <p className="text-sm text-gray-600 mb-3">{goal.description}</p>}
+              {goal.description && <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '12px' }}>{goal.description}</p>}
 
-              <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+              <div style={{ width: '100%', background: 'var(--bg)', borderRadius: '9999px', height: '12px', marginBottom: '8px' }}>
                 <div
-                  className="h-3 rounded-full bg-blue-500 transition-all"
-                  style={{ width: `${Math.min(progress, 100)}%` }}
+                  style={{
+                    height: '12px',
+                    borderRadius: '9999px',
+                    background: 'var(--primary)',
+                    transition: 'all 200ms ease',
+                    width: `${Math.min(progress, 100)}%`,
+                  }}
                 />
               </div>
 
-              <div className="text-sm text-gray-600 mb-4">
-                <p>{formatCurrency(goal.current_amount)} / {formatCurrency(goal.target_amount)}</p>
-                <p>{progress.toFixed(1)}% complete</p>
-                {goal.deadline && <p className="text-xs">Deadline: {formatDate(goal.deadline)}</p>}
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                <p style={{ margin: '4px 0' }}>{formatCurrency(goal.current_amount)} / {formatCurrency(goal.target_amount)}</p>
+                <p style={{ margin: '4px 0' }}>{progress.toFixed(1)}% complete</p>
+                {goal.deadline && <p style={{ fontSize: '12px', margin: '4px 0' }}>Deadline: {formatDate(goal.deadline)}</p>}
               </div>
 
               {contributeId === goal.id ? (

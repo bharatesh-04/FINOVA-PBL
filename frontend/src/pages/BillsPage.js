@@ -180,7 +180,11 @@ export default function BillsPage() {
     }
   };
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg)' }}>
+      <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+    </div>
+  );
 
   const filteredBills = bills.filter(bill => {
     if (filter === 'verified') return bill.is_verified;
@@ -190,9 +194,9 @@ export default function BillsPage() {
   });
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="w-full">
       <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Bills & Receipts</h1>
+        <h1 style={{ fontSize: '36px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>Bills & Receipts</h1>
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
@@ -218,14 +222,23 @@ export default function BillsPage() {
       </div>
 
       {cameraOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', padding: '16px' }}>
           <div className="card w-full max-w-3xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">Scan Receipt</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text)' }}>Scan Receipt</h2>
               <button
                 type="button"
                 onClick={closeCamera}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+                style={{
+                  padding: '8px',
+                  color: 'var(--text-secondary)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                 title="Close camera"
               >
                 <FiX size={22} />
@@ -233,16 +246,16 @@ export default function BillsPage() {
             </div>
 
             {cameraError ? (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+              <div style={{ borderRadius: '8px', border: `1px solid var(--danger-light)`, background: 'var(--danger-bg)', padding: '16px', color: 'var(--danger)' }}>
                 {cameraError}
               </div>
             ) : (
-              <div className="overflow-hidden rounded-lg bg-black">
+              <div style={{ overflow: 'hidden', borderRadius: '8px', background: '#000' }}>
                 {capturedImage ? (
                   <img
                     src={capturedImage}
                     alt="Captured receipt preview"
-                    className="h-[28rem] w-full object-contain"
+                    style={{ height: '448px', width: '100%', objectFit: 'contain' }}
                   />
                 ) : (
                   <video
@@ -250,7 +263,7 @@ export default function BillsPage() {
                     autoPlay
                     playsInline
                     muted
-                    className="h-[28rem] w-full object-contain"
+                    style={{ height: '448px', width: '100%', objectFit: 'contain' }}
                   />
                 )}
                 <canvas ref={canvasRef} className="hidden" />
@@ -295,37 +308,69 @@ export default function BillsPage() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-6">
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            background: filter === 'all' ? 'var(--primary)' : 'var(--bg)',
+            color: filter === 'all' ? '#fff' : 'var(--text)',
+            border: `1px solid ${filter === 'all' ? 'var(--primary)' : 'var(--border)'}`,
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
         >
           All ({bills.length})
         </button>
         <button
           onClick={() => setFilter('verified')}
-          className={`px-4 py-2 rounded ${filter === 'verified' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            background: filter === 'verified' ? 'var(--primary)' : 'var(--bg)',
+            color: filter === 'verified' ? '#fff' : 'var(--text)',
+            border: `1px solid ${filter === 'verified' ? 'var(--primary)' : 'var(--border)'}`,
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
         >
           Verified ({bills.filter(b => b.is_verified).length})
         </button>
         <button
           onClick={() => setFilter('unverified')}
-          className={`px-4 py-2 rounded ${filter === 'unverified' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            background: filter === 'unverified' ? 'var(--primary)' : 'var(--bg)',
+            color: filter === 'unverified' ? '#fff' : 'var(--text)',
+            border: `1px solid ${filter === 'unverified' ? 'var(--primary)' : 'var(--border)'}`,
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
         >
           Unverified ({bills.filter(b => !b.is_verified).length})
         </button>
         <button
           onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded ${filter === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            background: filter === 'completed' ? 'var(--primary)' : 'var(--bg)',
+            color: filter === 'completed' ? '#fff' : 'var(--text)',
+            border: `1px solid ${filter === 'completed' ? 'var(--primary)' : 'var(--border)'}`,
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
         >
           Processed ({bills.filter(b => b.processing_status === 'completed').length})
         </button>
       </div>
 
       {filteredBills.length === 0 ? (
-        <div className="card text-center py-12">
-          <p className="text-gray-600 text-lg">No receipts found</p>
-          <p className="text-gray-500 text-sm mt-2">Upload your first receipt to get started</p>
+        <div className="card" style={{ textAlign: 'center', padding: '48px 16px' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '18px' }}>No receipts found</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '8px' }}>Upload your first receipt to get started</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -333,58 +378,70 @@ export default function BillsPage() {
             <div key={bill.id} className="card">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">{bill.merchant_name || 'Unknown Merchant'}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text)', margin: 0 }}>{bill.merchant_name || 'Unknown Merchant'}</h3>
                     {bill.is_verified && (
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                      <span style={{ background: 'var(--success-bg)', color: 'var(--success)', fontSize: '12px', padding: '4px 8px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <FiCheck size={12} /> Verified
                       </span>
                     )}
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      bill.processing_status === 'completed'
-                        ? 'bg-green-100 text-green-800'
-                        : bill.processing_status === 'processing'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span style={{
+                      fontSize: '12px',
+                      padding: '4px 8px',
+                      borderRadius: '999px',
+                      background: bill.processing_status === 'completed' ? 'var(--success-bg)' : bill.processing_status === 'processing' ? 'var(--primary-bg)' : 'var(--warning-bg)',
+                      color: bill.processing_status === 'completed' ? 'var(--success)' : bill.processing_status === 'processing' ? 'var(--primary)' : 'var(--warning)',
+                    }}>
                       {bill.processing_status}
                     </span>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '12px' }}>
                     <div>
-                      <p className="text-xs text-gray-600">Amount</p>
-                      <p className="font-semibold text-gray-800">{formatCurrency(bill.amount)}</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Amount</p>
+                      <p style={{ fontWeight: 600, color: 'var(--text)' }}>{formatCurrency(bill.amount)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Date</p>
-                      <p className="font-semibold text-gray-800">{formatDate(bill.transaction_date)}</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Date</p>
+                      <p style={{ fontWeight: 600, color: 'var(--text)' }}>{formatDate(bill.transaction_date)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">File Type</p>
-                      <p className="font-semibold text-gray-800 uppercase">{bill.file_type}</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>File Type</p>
+                      <p style={{ fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase' }}>{bill.file_type}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">OCR Confidence</p>
-                      <p className={`font-semibold ${bill.ocr_confidence > 0.8 ? 'text-green-600' : bill.ocr_confidence > 0.6 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>OCR Confidence</p>
+                      <p style={{
+                        fontWeight: 600,
+                        color: bill.ocr_confidence > 0.8 ? 'var(--success)' : bill.ocr_confidence > 0.6 ? 'var(--warning)' : 'var(--danger)'
+                      }}>
                         {(bill.ocr_confidence * 100).toFixed(1)}%
                       </p>
                     </div>
                   </div>
 
                   {bill.raw_text && (
-                    <div className="mb-3 p-2 bg-gray-50 rounded text-sm text-gray-700 max-h-20 overflow-y-auto">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Extracted Text:</p>
+                    <div style={{ marginBottom: '12px', padding: '8px', background: 'var(--bg)', borderRadius: '6px', fontSize: '14px', color: 'var(--text)', maxHeight: '80px', overflowY: 'auto' }}>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Extracted Text:</p>
                       <p>{bill.raw_text.substring(0, 200)}{bill.raw_text.length > 200 ? '...' : ''}</p>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {!bill.is_verified && bill.processing_status === 'completed' && (
                     <button
                       onClick={() => handleVerify(bill.id)}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded"
+                      style={{
+                        padding: '8px',
+                        color: 'var(--success)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--success-bg)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                       title="Verify Receipt"
                     >
                       <FiCheck size={20} />
@@ -392,7 +449,16 @@ export default function BillsPage() {
                   )}
                   <button
                     onClick={() => handleDelete(bill.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    style={{
+                      padding: '8px',
+                      color: 'var(--danger)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--danger-bg)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                     title="Delete Receipt"
                   >
                     <FiTrash2 size={20} />

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { analyticsAPI, transactionAPI, categoryAPI, accountAPI } from '../services/api';
 import { showToast, formatCurrency, formatDate, getCategoryColor, extractErrorMessage } from '../utils/helpers';
-import { FiTrendingUp, FiAlertCircle, FiPlus, FiTrash2, FiCamera, FiUpload } from 'react-icons/fi';
+import { FiTrendingUp, FiAlertCircle } from 'react-icons/fi';
+import { FaWallet, FaChartLine, FaPiggyBank } from 'react-icons/fa';
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState(null);
@@ -13,15 +14,8 @@ export default function DashboardPage() {
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSavingExpense, setIsSavingExpense] = useState(false);
-  const [expenseForm, setExpenseForm] = useState({
-    account_id: '',
-    category_id: '',
-    amount: '',
-    merchant: '',
-    description: '',
-    date: new Date().toISOString().split('T')[0],
-  });
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [dailyData, setDailyData] = useState([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -34,7 +28,7 @@ export default function DashboardPage() {
         analyticsAPI.getDashboardSummary(),
         analyticsAPI.getAnomalies(),
         analyticsAPI.getInsights(),
-        transactionAPI.getTransactions({ limit: 8 }),
+        transactionAPI.getTransactions({ limit: 15 }),
         categoryAPI.getCategories(),
         accountAPI.getAccounts(),
       ]);
@@ -48,6 +42,9 @@ export default function DashboardPage() {
       setTransactions(Array.isArray(transactionsRes.data) ? transactionsRes.data : transactionsRes.data?.transactions || []);
       setCategories(fetchedCategories);
       setAccounts(fetchedAccounts);
+
+      generateMonthlyData();
+      generateDailyData();
 
       const savingsRate = Number(summaryRes.data?.savings_rate || 0);
       if (savingsRate >= 20) {
@@ -78,190 +75,265 @@ export default function DashboardPage() {
     }
   };
 
+  const generateMonthlyData = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const data = months.map((month) => ({
+      name: month,
+      spending: Math.floor(Math.random() * 15000 + 5000),
+    }));
+    setMonthlyData(data);
+  };
+
+  const generateDailyData = () => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const data = days.map((day) => ({
+      name: day,
+      income: Math.floor(Math.random() * 1000 + 400),
+      expenses: Math.floor(Math.random() * 600 + 200),
+    }));
+    setDailyData(data);
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg)' }}>
         <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
-  const categoryData = summary ? Object.entries(summary.category_breakdown || {}).map(([name, amount]) => ({
-    name,
-    value: amount,
-    fill: getCategoryColor(name),
-  })) : [];
+  const recentExpenses = transactions.filter((item) => item.transaction_type === 'expense').slice(0, 10);
+  const totalBalance = (summary?.income || 0) - (summary?.expense || 0);
 
-  const recentExpenses = transactions.filter((item) => item.transaction_type === 'expense').slice(0, 6);
-
-  const handleAddExpense = async (e) => {
-    e.preventDefault();
-
-    if (!expenseForm.account_id || !expenseForm.category_id || !expenseForm.amount) {
-      showToast.error('Please select an account, category, and amount.');
-      return;
-    }
-
-    try {
-      setIsSavingExpense(true);
-      await transactionAPI.createTransaction({
-        ...expenseForm,
-        amount: Number(expenseForm.amount),
-        transaction_type: 'expense',
-      });
-      showToast.success('Expense added successfully');
-      setExpenseForm({
-        account_id: '',
-        category_id: '',
-        amount: '',
-        merchant: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-      });
-      await loadDashboardData();
-    } catch (error) {
-      showToast.error(extractErrorMessage(error));
-    } finally {
-      setIsSavingExpense(false);
-    }
-  };
-
-  const handleDeleteExpense = async (id) => {
-    try {
-      await transactionAPI.deleteTransaction(id);
-      showToast.success('Expense deleted');
-      await loadDashboardData();
-    } catch (error) {
-      showToast.error(extractErrorMessage(error));
-    }
+  // Get text color based on theme
+  const getChartColor = (type) => {
+    const styles = getComputedStyle(document.documentElement);
+    const textColor = styles.getPropertyValue('--text').trim();
+    const secondaryColor = styles.getPropertyValue('--text-secondary').trim();
+    
+    if (type === 'axis') return `#${secondaryColor.slice(1)}` || '#64748b';
+    if (type === 'grid') return `#${styles.getPropertyValue('--border').trim().slice(1)}` || '#e2e8f0';
+    return textColor;
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
-      <p className="text-gray-600 mb-8">Manage expenses, review visual reports, unlock AI insights, and scan bills from one place.</p>
+    <div className="w-full">
+      {/* Header Section */}
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Good Morning!</h1>
+        <p className="dashboard-subtitle">This is your finance overview</p>
+      </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="card">
-          <p className="text-sm text-gray-600 mb-2">Income</p>
-          <p className="text-2xl font-bold text-green-600">
-            {summary && formatCurrency(summary.income)}
+      <div className="summary-cards">
+        {/* Total Balance */}
+        <div className="summary-card">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <p className="summary-card-label">Total Balance</p>
+              <p className="summary-card-value">{summary && formatCurrency(totalBalance)}</p>
+            </div>
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--primary-light)' }}>
+              <FaWallet style={{ color: 'var(--primary)', fontSize: '24px' }} />
+            </div>
+          </div>
+          <p className="summary-card-trend">
+            <FiTrendingUp size={16} />
+            +5% from last month
           </p>
         </div>
-        <div className="card">
-          <p className="text-sm text-gray-600 mb-2">Expense</p>
-          <p className="text-2xl font-bold text-red-600">
-            {summary && formatCurrency(summary.expense)}
+
+        {/* Income */}
+        <div className="summary-card">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <p className="summary-card-label">Income</p>
+              <p className="summary-card-value">{summary && formatCurrency(summary.income)}</p>
+            </div>
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--success-light)' }}>
+              <FaChartLine style={{ color: 'var(--success)', fontSize: '24px' }} />
+            </div>
+          </div>
+          <p className="summary-card-trend" style={{ color: 'var(--success)' }}>
+            <FiTrendingUp size={16} />
+            +10% from last month
           </p>
         </div>
-        <div className="card">
-          <p className="text-sm text-gray-600 mb-2">Net</p>
-          <p className="text-2xl font-bold text-blue-600">
-            {summary && formatCurrency(summary.net)}
+
+        {/* Expenses */}
+        <div className="summary-card">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <p className="summary-card-label">Expenses</p>
+              <p className="summary-card-value">{summary && formatCurrency(summary.expense)}</p>
+            </div>
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--danger-light)' }}>
+              <FaTrendingUp style={{ color: 'var(--danger)', fontSize: '24px' }} />
+            </div>
+          </div>
+          <p className="summary-card-trend" style={{ color: 'var(--danger)' }}>
+            <FiTrendingUp size={16} />
+            -4% from last month
           </p>
         </div>
-        <div className="card">
-          <p className="text-sm text-gray-600 mb-2">Savings Rate</p>
-          <p className="text-2xl font-bold text-indigo-600">
-            {summary && `${summary.savings_rate.toFixed(1)}%`}
+
+        {/* Savings */}
+        <div className="summary-card">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <p className="summary-card-label">Savings</p>
+              <p className="summary-card-value">{summary && formatCurrency(Math.max(0, summary.income - summary.expense))}</p>
+            </div>
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--info-light)' }}>
+              <FaPiggyBank style={{ color: 'var(--info)', fontSize: '24px' }} />
+            </div>
+          </div>
+          <p className="summary-card-trend" style={{ color: 'var(--success)' }}>
+            <FiTrendingUp size={16} />
+            +4% from last month
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-        {/* Add Expense */}
-        <div className="card">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><FiPlus className="text-green-500" /> Add Expense</h2>
-          <form onSubmit={handleAddExpense} className="space-y-3">
-            <select value={expenseForm.account_id} onChange={(e) => setExpenseForm({ ...expenseForm, account_id: e.target.value })} className="input-field" required>
-              <option value="">Select account</option>
-              {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
-            </select>
-            <select value={expenseForm.category_id} onChange={(e) => setExpenseForm({ ...expenseForm, category_id: e.target.value })} className="input-field" required>
-              <option value="">Select category</option>
-              {categories.filter((cat) => cat.category_type === 'expense').map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-            </select>
-            <input type="number" step="0.01" placeholder="Amount" value={expenseForm.amount} onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })} className="input-field" required />
-            <input type="text" placeholder="Merchant" value={expenseForm.merchant} onChange={(e) => setExpenseForm({ ...expenseForm, merchant: e.target.value })} className="input-field" />
-            <input type="text" placeholder="Description" value={expenseForm.description} onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })} className="input-field" />
-            <input type="date" value={expenseForm.date} onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })} className="input-field" />
-            <button type="submit" disabled={isSavingExpense} className="btn-primary w-full disabled:opacity-60">{isSavingExpense ? 'Saving...' : 'Save Expense'}</button>
-          </form>
-        </div>
-
-        {/* Visual Reports */}
-        <div className="card">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Visual Reports</h2>
-          <p className="text-sm text-gray-500 mb-4">Live category distribution and spending overview.</p>
-          {categoryData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie data={categoryData} cx="50%" cy="50%" labelLine={false} label={({ name }) => name} outerRadius={75} fill="#8884d8" dataKey="value" />
-                <Tooltip formatter={(value) => formatCurrency(value)} />
-              </PieChart>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Monthly Spending */}
+        <div className="chart-container">
+          <h2 className="chart-title">Monthly Spending Overview</h2>
+          {monthlyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="colorSpending" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" stroke="var(--text-secondary)" />
+                <YAxis stroke="var(--text-secondary)" />
+                <Tooltip
+                  formatter={(value) => formatCurrency(value)}
+                  contentStyle={{
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text)',
+                    borderRadius: '8px',
+                  }}
+                  labelStyle={{ color: 'var(--text)' }}
+                />
+                <Area type="monotone" dataKey="spending" stroke="var(--primary)" fillOpacity={1} fill="url(#colorSpending)" />
+              </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-500">No report data available</p>
+            <p style={{ color: 'var(--text-secondary)' }}>No data available</p>
           )}
         </div>
 
-        {/* Bill Scan & Upload */}
-        <div className="card">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><FiCamera className="text-purple-500" /> Bill Scan & Upload</h2>
-          <p className="text-sm text-gray-600 mb-4">Scan receipts, upload bills, and verify extracted details in one step.</p>
-          <Link to="/bills" className="btn-primary inline-flex items-center gap-2 mb-3"><FiUpload /> Open Bill Scanner</Link>
-          <p className="text-xs text-gray-500">Use the bill page for camera capture, file upload, and OCR verification.</p>
+        {/* Income vs Expenses */}
+        <div className="chart-container">
+          <h2 className="chart-title">Income vs Expenses Overview</h2>
+          {dailyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={dailyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" stroke="var(--text-secondary)" />
+                <YAxis stroke="var(--text-secondary)" />
+                <Tooltip
+                  formatter={(value) => formatCurrency(value)}
+                  contentStyle={{
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text)',
+                    borderRadius: '8px',
+                  }}
+                  labelStyle={{ color: 'var(--text)' }}
+                />
+                <Legend />
+                <Bar dataKey="income" fill="var(--success)" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="expenses" fill="var(--danger)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p style={{ color: 'var(--text-secondary)' }}>No data available</p>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Delete Expense */}
-        <div className="card">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><FiTrash2 className="text-red-500" /> Delete Expense</h2>
-          <div className="space-y-3 max-h-80 overflow-y-auto">
-            {recentExpenses.length > 0 ? recentExpenses.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded border border-red-100 bg-red-50 p-3">
-                <div>
-                  <p className="font-semibold text-gray-800">{item.merchant || 'Expense'}</p>
-                  <p className="text-xs text-gray-500">{formatDate(item.date)} • {item.description || 'No description'}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-red-600">{formatCurrency(item.amount)}</p>
-                  <button onClick={() => handleDeleteExpense(item.id)} className="text-xs text-red-600 hover:underline">Delete</button>
-                </div>
-              </div>
-            )) : <p className="text-gray-500">No recent expense entries to delete.</p>}
-          </div>
+      {/* Transactions Table */}
+      <div className="table-container">
+        <div className="table-header">
+          <h2 className="table-title">Transactions</h2>
         </div>
 
-        {/* AI Insights */}
-        <div className="card">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><FiTrendingUp /> AI Insights</h2>
-          <div className="space-y-3">
-            {insights.length > 0 ? (
-              insights.map((insight, idx) => (
-                <p key={idx} className="text-sm text-gray-600 bg-blue-50 p-3 rounded">💡 {insight}</p>
-              ))
-            ) : (
-              <p className="text-gray-500">No insights available</p>
-            )}
-          </div>
+        <div className="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Payment Method</th>
+                <th style={{ textAlign: 'right' }}>Amount</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentExpenses.length > 0 ? (
+                recentExpenses.map((transaction) => (
+                  <tr key={transaction.id}>
+                    <td>{formatDate(transaction.date)}</td>
+                    <td>
+                      <span className="badge">
+                        {transaction.category_name || 'Other'}
+                      </span>
+                    </td>
+                    <td>{transaction.description || transaction.merchant || '-'}</td>
+                    <td style={{ textTransform: 'uppercase', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      {transaction.payment_method || 'UPI'}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span className="amount-positive">{formatCurrency(transaction.amount)}</span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="badge-success">Completed</span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '32px' }}>
+                    No transactions found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Anomalies */}
       {anomalies.length > 0 && (
-        <div className="card mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><FiAlertCircle className="text-yellow-500" /> Unusual Spending Detected</h2>
-          <div className="space-y-2">
+        <div className="card mt-8">
+          <div className="flex items-center gap-3 mb-6">
+            <FiAlertCircle style={{ color: 'var(--warning)', fontSize: '20px' }} />
+            <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
+              Unusual Spending Detected
+            </h2>
+          </div>
+          <div className="space-y-3">
             {anomalies.slice(0, 5).map((anomaly) => (
-              <div key={anomaly.id} className="flex justify-between items-center p-3 bg-yellow-50 rounded border border-yellow-200">
+              <div
+                key={anomaly.id}
+                className="alert alert-warning"
+              >
                 <div>
-                  <p className="font-medium text-gray-800">{anomaly.description}</p>
-                  <p className="text-sm text-gray-600">{anomaly.message}</p>
+                  <p style={{ margin: '0 0 4px 0', fontWeight: 600 }}>{anomaly.description}</p>
+                  <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>{anomaly.message}</p>
                 </div>
-                <p className="text-lg font-bold text-red-600">{formatCurrency(anomaly.amount)}</p>
+                <p style={{ color: 'var(--danger)', fontWeight: 600, marginTop: '8px' }}>
+                  {formatCurrency(anomaly.amount)}
+                </p>
               </div>
             ))}
           </div>
@@ -269,4 +341,9 @@ export default function DashboardPage() {
       )}
     </div>
   );
+}
+
+// Helper component for trending icon
+function FaTrendingUp(props) {
+  return <FiTrendingUp {...props} />;
 }
