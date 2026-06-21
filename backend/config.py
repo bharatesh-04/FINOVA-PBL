@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # For PostgreSQL: postgresql://user:password@hostname:5432/dbname
     
     # JWT settings
-    SECRET_KEY: str = "your-secret-key-change-this-in-production-min-32-chars"
+    SECRET_KEY: str = "1-L7cbVxUU2F7EBHbW32VVLQwfY7HD0psfEHTRQrjX8"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
@@ -39,7 +39,8 @@ class Settings(BaseSettings):
         "http://localhost:3000", 
         "http://localhost:8000",
         "https://finova-qvey.onrender.com",
-        "https://finova-fpr3.onrender.com"
+        "https://finova-fpr3.onrender.com",
+        "*"  # Allow all origins (temporary for debugging - remove in production)
     ]
     
     class Config:

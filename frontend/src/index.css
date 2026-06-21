@@ -136,6 +136,13 @@ html[data-theme='light'] {
   --app-accent-hover: #1d4ed8;
   --app-secondary: #e5e7eb;
   --app-secondary-hover: #d1d5db;
+  
+  /* Light Mode Sidebar Colors */
+  --sidebar-bg: #3b82f6;
+  --sidebar-text: #ffffff;
+  --sidebar-text-secondary: #eff6ff;
+  --sidebar-hover: rgba(255, 255, 255, 0.15);
+  --sidebar-active: #1d4ed8;
 }
 
 

@@ -9,6 +9,8 @@ from .recurring_routes import router as recurring_router
 from .analytics_routes import router as analytics_router
 from .bill_routes import router as bill_router
 from .chat_routes import router as chat_router
+from .subscription_routes import router as subscription_router
+from .forecasting_routes import router as forecasting_router
 
 __all__ = [
     "auth_router",
@@ -20,5 +22,7 @@ __all__ = [
     "recurring_router",
     "analytics_router",
     "bill_router",
-    "chat_router"
+    "chat_router",
+    "subscription_router",
+    "forecasting_router"
 ]

@@ -3,7 +3,7 @@ import axios from 'axios';
 const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const DEFAULT_API_URL = isLocalhost
   ? 'http://localhost:8000/api'
-  : 'https://finova-fpr3.onrender.com/api';
+  : 'https://your-backend-url.onrender.com/api';  // ⚠️ CHANGE THIS to your actual Render backend URL
 
 // Use environment variable if set, otherwise use default
 const API_BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_URL;

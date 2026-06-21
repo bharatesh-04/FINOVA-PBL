@@ -26,4 +26,5 @@ class User(Base):
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     recurring_transactions = relationship("RecurringTransaction", back_populates="user", cascade="all, delete-orphan")
     bill_receipts = relationship("BillReceipt", back_populates="user", cascade="all, delete-orphan")
+    subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
     

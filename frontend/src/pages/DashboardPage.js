@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { analyticsAPI, transactionAPI, categoryAPI, accountAPI } from '../services/api';
+import { useAuthStore } from '../context/store';
 import { showToast, formatCurrency, formatDate, getCategoryColor, extractErrorMessage } from '../utils/helpers';
 import { FiTrendingUp, FiAlertCircle } from 'react-icons/fi';
 import { FaWallet, FaChartLine, FaPiggyBank } from 'react-icons/fa';
 
 export default function DashboardPage() {
+  const { user } = useAuthStore();
   const [summary, setSummary] = useState(null);
   const [anomalies, setAnomalies] = useState([]);
   const [insights, setInsights] = useState([]);
@@ -120,7 +122,7 @@ export default function DashboardPage() {
     <div className="w-full">
       {/* Header Section */}
       <div className="dashboard-header">
-        <h1 className="dashboard-title">Good Morning!</h1>
+        <h1 className="dashboard-title">Welcome, {user?.username || 'User'}! 👋</h1>
         <p className="dashboard-subtitle">This is your finance overview</p>
       </div>
 

@@ -13,6 +13,8 @@ import BudgetsPage from './pages/BudgetsPage';
 import GoalsPage from './pages/GoalsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import BillsPage from './pages/BillsPage';
+import SubscriptionsPage from './pages/SubscriptionsPage';
+import ExpenseForecastingPage from './pages/ExpenseForecastingPage';
 
 // Layout
 import Navigation from './components/Navigation';
@@ -145,6 +147,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <BillsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/subscriptions"
+            element={
+              <ProtectedRoute>
+                <SubscriptionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/forecasting"
+            element={
+              <ProtectedRoute>
+                <ExpenseForecastingPage />
               </ProtectedRoute>
             }
           />

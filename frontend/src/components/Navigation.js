@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../context/store';
-import { FiHome, FiList, FiPieChart, FiTarget, FiFileText, FiLogOut, FiMenu, FiX, FiSliders, FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
+import { FiHome, FiList, FiPieChart, FiTarget, FiFileText, FiLogOut, FiMenu, FiX, FiSliders, FiTrendingUp, FiBarChart2, FiRefreshCcw, FiZap } from 'react-icons/fi';
 import { FaRupeeSign } from 'react-icons/fa';
 import { useState } from 'react';
 
@@ -26,6 +26,8 @@ export default function Navigation({ theme, themeOptions, onThemeChange }) {
     { icon: FiTrendingUp, label: 'Insights', path: '/analytics' },
     { icon: FaRupeeSign, label: 'Accounts', path: '/accounts' },
     { icon: FiFileText, label: 'Bills & Receipts', path: '/bills' },
+    { icon: FiRefreshCcw, label: 'Subscriptions', path: '/subscriptions' },
+    { icon: FiZap, label: 'Forecasting', path: '/forecasting' },
   ];
 
   return (

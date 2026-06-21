@@ -11,7 +11,8 @@ from app.database import init_db
 from app.routes import (
     auth_router, transaction_router, account_router,
     category_router, budget_router, goal_router,
-    recurring_router, analytics_router, bill_router, chat_router
+    recurring_router, analytics_router, bill_router, chat_router,
+    subscription_router, forecasting_router
 )
 
 # Database initialization is performed during application startup
@@ -56,6 +57,8 @@ app.include_router(recurring_router)
 app.include_router(analytics_router)
 app.include_router(bill_router)
 app.include_router(chat_router)
+app.include_router(subscription_router)
+app.include_router(forecasting_router)
 
 # Root endpoint
 @app.get("/")
