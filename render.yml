@@ -2,12 +2,12 @@ services:
   - type: web
     name: finance-tracker-api
     env: python
+    pythonVersion: 3.13.12
     plan: free
     buildCommand: |
-      cd frontend && npm install && npm run build && cd ../backend && \
-      python -m pip install --upgrade pip && python -m pip install -r requirements.txt
-    startCommand: cd backend && gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
-    rootDir: .
+      python -m pip install --upgrade pip && python -m pip install -r requirements-core.txt
+    startCommand: gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+    rootDir: backend
     envVars:
       - key: DEBUG
         value: "false"
