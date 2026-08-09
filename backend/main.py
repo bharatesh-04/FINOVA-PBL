@@ -38,10 +38,17 @@ app = FastAPI(
 )
 
 # Add CORS middleware
+allow_origins = settings.CORS_ORIGINS
+allow_credentials = getattr(settings, "CORS_ALLOW_CREDENTIALS", True)
+
+if isinstance(allow_origins, list) and "*" in allow_origins:
+    allow_origins = ["*"]
+    allow_credentials = False
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=allow_origins,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -100,33 +107,29 @@ if os.path.exists(frontend_static_path):
     print(f"Mounting static files from: {frontend_static_path}")
     app.mount("/static", StaticFiles(directory=frontend_static_path), name="static")
 
+from fastapi import HTTPException
+
 # Catch-all route for SPA (serve index.html for non-API routes)
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve React SPA for all non-API routes"""
-    # Skip if it's an API route, file with extension, or uploads
-    if full_path.startswith("api/"):
-        return {"error": "Not Found"}, 404
-    
+    # Skip API route requests and file extension requests
+    if full_path.startswith("api/") or full_path == "api":
+        raise HTTPException(status_code=404, detail="Not Found")
+
     if "." in full_path or full_path.startswith("uploads/"):
-        return {"error": "Not Found"}, 404
-    
-    # Serve index.html for client-side routing
+        raise HTTPException(status_code=404, detail="Not Found")
+
     index_file = os.path.join(frontend_build_path, "index.html")
-    
     if os.path.exists(index_file):
         print(f"Serving frontend from: {index_file}")
         return FileResponse(index_file, media_type="text/html")
-    
-    # Fallback if frontend not built
+
     print(f"Frontend not built at: {frontend_build_path}")
-    return {
-        "error": "Frontend not built",
-        "message": "Run: cd frontend && npm run build",
-        "frontend_path": frontend_build_path,
-        "index_file": index_file,
-        "exists": os.path.exists(index_file)
-    }
+    raise HTTPException(
+        status_code=500,
+        detail="Frontend build missing. Run: cd frontend && npm run build"
+    )
 
 # Error handlers
 @app.exception_handler(ValueError)

@@ -7,6 +7,7 @@ from .budget import Budget
 from .goal import Goal
 from .recurring import RecurringTransaction
 from .bill_receipt import BillReceipt
+from .subscription import Subscription
 
 __all__ = [
     "User",
@@ -16,5 +17,6 @@ __all__ = [
     "Budget",
     "Goal",
     "RecurringTransaction",
-    "BillReceipt"
+    "BillReceipt",
+    "Subscription"
 ]

@@ -39,6 +39,9 @@ export default function Navigation({ theme, themeOptions, onThemeChange }) {
           <Link to="/dashboard" className="text-white no-underline">
             FINNOVA
           </Link>
+          {user?.username && (
+            <p className="mt-2 text-sm text-gray-200">Hello, {user.username}</p>
+          )}
         </div>
 
         {/* Nav Items */}

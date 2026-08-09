@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { forecastingAPI } from '../services/advancedAPI';
 import { showToast } from '../utils/helpers';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FiTrendingUp, FiAlertCircle, FiTarget } from 'react-icons/fi';
+import { FiTrendingUp, FiAlertCircle } from 'react-icons/fi';
 
 export default function ExpenseForecastingPage() {
   const [forecast, setForecast] = useState([]);

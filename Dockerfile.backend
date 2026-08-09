@@ -18,8 +18,8 @@ RUN apt-get update && apt-get install -y \
 
 # Copy backend requirements
 COPY backend/requirements-core.txt .
-RUN python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install --no-cache-dir -r requirements-core.txt
+RUN python -m pip install --upgrade pip wheel \
+    && python -m pip install --prefer-binary --no-cache-dir -r requirements-core.txt
 
 # Copy backend code
 COPY backend/ ./backend/

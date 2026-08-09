@@ -2,8 +2,11 @@
 Configuration settings for the FINNOVA application
 """
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from typing import Optional
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
     """Application settings"""
@@ -36,18 +39,19 @@ class Settings(BaseSettings):
     
     # CORS settings
     CORS_ORIGINS: list[str] | str = [
-        "http://localhost:3000", 
+        "http://localhost:3000",
         "http://localhost:8000",
         "https://finova-qvey.onrender.com",
         "https://finova-fpr3.onrender.com",
         "*"  # Allow all origins (temporary for debugging - remove in production)
     ]
-    
+    CORS_ALLOW_CREDENTIALS: bool = True
+
     class Config:
-        env_file = ".env"
+        env_file = str(ROOT_DIR / ".env")
         case_sensitive = True
         extra = "ignore"
-    
+
     def __init__(self, **data):
         super().__init__(**data)
         if isinstance(self.DEBUG, str):

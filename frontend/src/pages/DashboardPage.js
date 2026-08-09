@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { analyticsAPI, transactionAPI, categoryAPI, accountAPI } from '../services/api';
 import { useAuthStore } from '../context/store';
-import { showToast, formatCurrency, formatDate, getCategoryColor, extractErrorMessage } from '../utils/helpers';
+import { showToast, formatCurrency, formatDate } from '../utils/helpers';
 import { FiTrendingUp, FiAlertCircle } from 'react-icons/fi';
 import { FaWallet, FaChartLine, FaPiggyBank } from 'react-icons/fa';
 
@@ -179,6 +178,22 @@ export default function DashboardPage() {
           </p>
         </div>
 
+        {/* Accounts */}
+        <div className="summary-card">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <p className="summary-card-label">Accounts</p>
+              <p className="summary-card-value">{accounts.length}</p>
+            </div>
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--primary-light)' }}>
+              <FaWallet style={{ color: 'var(--primary)', fontSize: '24px' }} />
+            </div>
+          </div>
+          <p className="summary-card-trend" style={{ color: 'var(--info)' }}>
+            {accounts.length} active accounts
+          </p>
+        </div>
+
         {/* Savings */}
         <div className="summary-card">
           <div className="flex items-start justify-between mb-4">
@@ -315,6 +330,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Anomalies */}
+      {insights.length > 0 && (
+        <div className="card mt-8">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">AI Insights</h2>
+            <p className="text-sm text-gray-500">Smart recommendations based on your recent activity.</p>
+          </div>
+          <div className="space-y-3">
+            {insights.slice(0, 3).map((insight, index) => (
+              <div key={index} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--surface-muted)' }}>
+                <p className="text-sm text-gray-700">{insight}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {anomalies.length > 0 && (
         <div className="card mt-8">
           <div className="flex items-center gap-3 mb-6">

@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { subscriptionAPI } from '../services/advancedAPI';
 import { showToast, formatCurrency } from '../utils/helpers';
 import { FiPlus, FiEdit2, FiTrash2, FiCalendar, FiDollarSign, FiAlertCircle } from 'react-icons/fi';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function SubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState([]);
